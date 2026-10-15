@@ -11,15 +11,21 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:setup": "tsx src/db/cli.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
     "eslint": "^10.12.0",
     "fast-check": "^4.10.2",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.1",
     "vitest": "^5.0.4"
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
   }
 }
