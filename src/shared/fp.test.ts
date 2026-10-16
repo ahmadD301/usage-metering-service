@@ -19,7 +19,8 @@ describe("pipe", () => {
 });
 
 describe("Result helpers", () => {
-  const half = (n: number): Result<number, "odd"> => (n % 2 === 0 ? ok(n / 2) : err("odd"));
+  const half = (n: number): Result<number, "odd"> =>
+    n % 2 === 0 ? ok(n / 2) : err("odd");
 
   it("mapResult transforms only the ok branch", () => {
     expect(mapResult(ok(2), (n) => n + 1)).toEqual(ok(3));

@@ -4,12 +4,16 @@ import type pg from "pg";
 import pgModule from "pg";
 import { bootstrapDatabase } from "../../src/db/bootstrap.js";
 import { createPool, exactlyOne } from "../../src/db/client.js";
-import { DEFAULT_ACCOUNT_PLAN_ID, DEFAULT_USER_PLAN_ID } from "../../src/db/predefined-plans.js";
+import {
+  DEFAULT_ACCOUNT_PLAN_ID,
+  DEFAULT_USER_PLAN_ID,
+} from "../../src/db/predefined-plans.js";
 
 export const MIGRATIONS_DIR = path.resolve(process.cwd(), "migrations");
 
 const CONNECTION_URL =
-  process.env.TEST_DATABASE_URL ?? "postgres://metering:metering_dev_password@localhost:5432/metering";
+  process.env.TEST_DATABASE_URL ??
+  "postgres://metering:metering_dev_password@localhost:5432/metering";
 
 export type TestDb = {
   readonly pool: pg.Pool;
@@ -26,7 +30,10 @@ export const createTestDb = async (options: Options = {}): Promise<TestDb> => {
   const admin = new pgModule.Pool({ connectionString: CONNECTION_URL, max: 1 });
   await admin.query(`CREATE SCHEMA ${schema}`);
 
-  const pool = createPool(CONNECTION_URL, { max: 5, options: `-c search_path=${schema}` });
+  const pool = createPool(CONNECTION_URL, {
+    max: 5,
+    options: `-c search_path=${schema}`,
+  });
   if (options.migrate !== false) {
     await bootstrapDatabase(pool, MIGRATIONS_DIR);
   }
@@ -41,7 +48,10 @@ export const createTestDb = async (options: Options = {}): Promise<TestDb> => {
   };
 };
 
-export const insertAccount = async (pool: pg.Pool, name: string): Promise<string> => {
+export const insertAccount = async (
+  pool: pg.Pool,
+  name: string,
+): Promise<string> => {
   const result = await pool.query<{ id: string }>(
     "INSERT INTO accounts (name, plan_id) VALUES ($1, $2) RETURNING id",
     [name, DEFAULT_ACCOUNT_PLAN_ID],

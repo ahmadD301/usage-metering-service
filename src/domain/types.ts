@@ -5,9 +5,12 @@ export type Units = number & { readonly __brand: "Units" };
 
 export type Level = "account" | "user";
 
-export const RULE_KINDS = ["max_per_request", "monthly_allowance", "daily_allowance"] as const;
+export const RULE_KINDS = [
+  "max_per_request",
+  "monthly_allowance",
+  "daily_allowance",
+] as const;
 export type RuleKind = (typeof RULE_KINDS)[number];
-
 
 export type RuleConfig = {
   readonly kind: RuleKind;
@@ -37,7 +40,6 @@ export type EvaluationContext = {
   readonly user: LevelState;
 };
 
-
 export type Violation = {
   readonly level: Level;
   readonly rule: RuleKind;
@@ -61,10 +63,7 @@ export type Decision =
       readonly primary: Violation;
 
       // A rejected request must have at least one violation
-      readonly violations: readonly [
-        Violation,
-        ...Violation[],
-      ];
+      readonly violations: readonly [Violation, ...Violation[]];
     };
 
 export type RuleInput = {

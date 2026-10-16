@@ -18,7 +18,10 @@ const units = (n: number): Units => {
   return parsed.value;
 };
 
-const usage = (monthUsed = 0, dayUsed = 0): UsageSnapshot => ({ monthUsed, dayUsed });
+const usage = (monthUsed = 0, dayUsed = 0): UsageSnapshot => ({
+  monthUsed,
+  dayUsed,
+});
 
 const plan = (scope: Level, rules: readonly RuleConfig[]): Plan => ({
   id: `${scope}-plan`,
@@ -47,7 +50,9 @@ const context = (
   user: { plan: userPlan, usage: userUsage },
 });
 
-const expectRejected = (decision: Decision): Extract<Decision, { kind: "rejected" }> => {
+const expectRejected = (
+  decision: Decision,
+): Extract<Decision, { kind: "rejected" }> => {
   if (decision.kind !== "rejected") throw new Error("expected a rejection");
   return decision;
 };
@@ -69,7 +74,9 @@ describe("evaluate: examples from the brief", () => {
   });
 
   it("rejects 10 units when the account has only 5 remaining, even if the user has plenty", () => {
-    const decision = expectRejected(evaluate(context(10, usage(9_995), usage(0))));
+    const decision = expectRejected(
+      evaluate(context(10, usage(9_995), usage(0))),
+    );
     expect(decision.violations).toHaveLength(1);
     expect(decision.primary).toEqual({
       level: "account",
@@ -171,14 +178,19 @@ describe("evaluate: plan changes keep consumed usage", () => {
     const decision = expectRejected(
       evaluate({ ...context(1), user: { plan: shrunk, usage: alreadyUsed } }),
     );
-    expect(decision.primary).toMatchObject({ level: "user", rule: "monthly_allowance", remaining: 0 });
+    expect(decision.primary).toMatchObject({
+      level: "user",
+      rule: "monthly_allowance",
+      remaining: 0,
+    });
   });
 
   it("allows consumption again once the allowance exceeds usage, without resetting usage", () => {
     expect(remainingFor(grown, "monthly_allowance", alreadyUsed)).toBe(1_200);
-    expect(evaluate({ ...context(10), user: { plan: grown, usage: alreadyUsed } }).kind).toBe(
-      "accepted",
-    );
+    expect(
+      evaluate({ ...context(10), user: { plan: grown, usage: alreadyUsed } })
+        .kind,
+    ).toBe("accepted");
   });
 
   it("returns null remaining for a rule kind the plan does not have", () => {

@@ -12,7 +12,11 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:setup": "tsx src/db/cli.ts"
+    "db:setup": "tsx src/db/cli.ts",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/src/index.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -20,12 +24,15 @@
     "@types/pg": "^8.23.1",
     "eslint": "^10.12.0",
     "fast-check": "^4.10.2",
+    "prettier": "^3.9.10",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.1",
     "vitest": "^5.0.4"
   },
   "dependencies": {
-    "pg": "^8.23.1"
+    "fastify": "^5.12.7",
+    "pg": "^8.23.1",
+    "zod": "^3.25.76"
   }
 }
