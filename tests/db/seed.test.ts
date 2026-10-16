@@ -26,7 +26,9 @@ describe("predefined plans", () => {
       "user:Basic",
       "user:Premium",
     ]);
-    expect(plans.every((plan) => plan.predefined && plan.ownerAccountId === null)).toBe(true);
+    expect(
+      plans.every((plan) => plan.predefined && plan.ownerAccountId === null),
+    ).toBe(true);
   });
 
   it("stores the documented limits", async () => {
@@ -71,6 +73,8 @@ describe("predefined plans", () => {
   });
 
   it("returns null for an unknown plan id", async () => {
-    expect(await findPlanById(db.pool, "11111111-1111-4111-8111-111111111111")).toBeNull();
+    expect(
+      await findPlanById(db.pool, "11111111-1111-4111-8111-111111111111"),
+    ).toBeNull();
   });
 });

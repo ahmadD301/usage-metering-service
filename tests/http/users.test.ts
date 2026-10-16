@@ -1,5 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { PREMIUM_PLAN_ID, STARTER_PLAN_ID } from "../../src/db/predefined-plans.js";
+import {
+  PREMIUM_PLAN_ID,
+  STARTER_PLAN_ID,
+} from "../../src/db/predefined-plans.js";
 import {
   asAccount,
   createAccount,
@@ -39,7 +42,10 @@ describe("users", () => {
   });
 
   it("rejects an account-scope plan for a user with 422", async () => {
-    const response = await api.post("/users", { externalId: "wrong", planId: STARTER_PLAN_ID });
+    const response = await api.post("/users", {
+      externalId: "wrong",
+      planId: STARTER_PLAN_ID,
+    });
     expect(response.statusCode).toBe(422);
     expect(response.json<ErrorBody>().error.code).toBe("plan_scope_mismatch");
   });
@@ -64,7 +70,9 @@ describe("users", () => {
 
   it("switches a user's plan", async () => {
     await api.post("/users", { externalId: "switcher" });
-    const switched = await api.put("/users/switcher/plan", { planId: PREMIUM_PLAN_ID });
+    const switched = await api.put("/users/switcher/plan", {
+      planId: PREMIUM_PLAN_ID,
+    });
     expect(switched.statusCode).toBe(200);
 
     const fetched = await api.get("/users/switcher");
@@ -75,13 +83,22 @@ describe("users", () => {
     await api.post("/users", { externalId: "effective" });
     const response = await api.get("/users/effective/effective-plans");
     expect(response.statusCode).toBe(200);
-    const body = response.json<{ account: { plan: PlanBody }; user: UserBody }>();
-    expect(body.account.plan).toMatchObject({ name: "Starter", scope: "account" });
+    const body = response.json<{
+      account: { plan: PlanBody };
+      user: UserBody;
+    }>();
+    expect(body.account.plan).toMatchObject({
+      name: "Starter",
+      scope: "account",
+    });
     expect(body.user.plan).toMatchObject({ name: "Basic", scope: "user" });
   });
 
   it("paginates users with a cursor", async () => {
-    const fresh = asAccount(t.app, (await createAccount(t.app, "Paging Co")).apiKey);
+    const fresh = asAccount(
+      t.app,
+      (await createAccount(t.app, "Paging Co")).apiKey,
+    );
     for (const externalId of ["c", "a", "b"]) {
       await fresh.post("/users", { externalId });
     }

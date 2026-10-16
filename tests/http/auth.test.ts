@@ -38,16 +38,19 @@ describe("API key authentication", () => {
   });
 
   it("rejects an unknown API key", async () => {
-    const response = await asAccount(t.app, "mk_00000000_notarealkey").get("/account");
+    const response = await asAccount(t.app, "mk_00000000_notarealkey").get(
+      "/account",
+    );
     expect(response.statusCode).toBe(401);
     expect(response.json<ErrorBody>().error.code).toBe("invalid_api_key");
   });
 
   it("rejects a revoked API key", async () => {
     const other = await createAccount(t.app, "Revoked Co");
-    await t.db.pool.query("UPDATE api_keys SET revoked_at = now() WHERE account_id = $1", [
-      other.id,
-    ]);
+    await t.db.pool.query(
+      "UPDATE api_keys SET revoked_at = now() WHERE account_id = $1",
+      [other.id],
+    );
     const response = await asAccount(t.app, other.apiKey).get("/account");
     expect(response.statusCode).toBe(401);
     expect(response.json<ErrorBody>().error.code).toBe("invalid_api_key");
@@ -56,7 +59,9 @@ describe("API key authentication", () => {
   it("accepts a valid key and identifies the right account", async () => {
     const response = await asAccount(t.app, acme.apiKey).get("/account");
     expect(response.statusCode).toBe(200);
-    expect(response.json<{ account: { id: string; name: string } }>().account).toMatchObject({
+    expect(
+      response.json<{ account: { id: string; name: string } }>().account,
+    ).toMatchObject({
       id: acme.id,
       name: "Acme",
     });
@@ -84,12 +89,16 @@ describe("API key authentication", () => {
   });
 
   it("stores only a hash of the key, never the key itself", async () => {
-    const rows = await t.db.pool.query<{ key_prefix: string; key_hash: string }>(
-      "SELECT key_prefix, key_hash FROM api_keys WHERE account_id = $1",
-      [acme.id],
-    );
+    const rows = await t.db.pool.query<{
+      key_prefix: string;
+      key_hash: string;
+    }>("SELECT key_prefix, key_hash FROM api_keys WHERE account_id = $1", [
+      acme.id,
+    ]);
     const expectedHash = createHash("sha256").update(acme.apiKey).digest("hex");
-    expect(rows.rows).toEqual([{ key_prefix: acme.apiKey.slice(0, 11), key_hash: expectedHash }]);
+    expect(rows.rows).toEqual([
+      { key_prefix: acme.apiKey.slice(0, 11), key_hash: expectedHash },
+    ]);
     expect(JSON.stringify(rows.rows)).not.toContain(acme.apiKey);
   });
 });
@@ -105,7 +114,9 @@ describe("public and unknown routes", () => {
   });
 
   it("serves health and readiness without a key", async () => {
-    expect((await t.app.inject({ method: "GET", url: "/health" })).statusCode).toBe(200);
+    expect(
+      (await t.app.inject({ method: "GET", url: "/health" })).statusCode,
+    ).toBe(200);
     const ready = await t.app.inject({ method: "GET", url: "/ready" });
     expect(ready.statusCode).toBe(200);
     expect(ready.json<{ status: string }>().status).toBe("ready");

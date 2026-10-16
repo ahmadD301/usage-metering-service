@@ -10,7 +10,11 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-metering} -d $${POSTGRES_DB:-metering}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER:-metering} -d $${POSTGRES_DB:-metering}",
+        ]
       interval: 2s
       timeout: 5s
       retries: 15

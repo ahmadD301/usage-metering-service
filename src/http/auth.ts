@@ -16,7 +16,8 @@ declare module "fastify" {
   }
 }
 
-const digest = (value: string): Buffer => createHash("sha256").update(value).digest();
+const digest = (value: string): Buffer =>
+  createHash("sha256").update(value).digest();
 
 // Constant-time comparison. Hashing first gives both sides equal length.
 export const tokensMatch = (provided: string, expected: string): boolean =>
@@ -40,13 +41,15 @@ export const requireApiKey =
     if (typeof header !== "string" || header.trim() === "") {
       throw httpErrors.missingApiKey();
     }
-    const account = await findAccountByApiKeyHash(pool, hashApiKey(header.trim()));
+    const account = await findAccountByApiKeyHash(
+      pool,
+      hashApiKey(header.trim()),
+    );
     if (account === null) {
       throw httpErrors.invalidApiKey();
     }
     request.account = account;
   };
-
 
 // Route handlers call this to get the authenticated account (never from URL or body).
 export const accountOf = (request: FastifyRequest): AccountRecord => {

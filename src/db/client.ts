@@ -1,11 +1,8 @@
-
 import pg from "pg";
 import type { QueryResult, QueryResultRow } from "pg";
 
-
-pg.types.setTypeParser(
-  pg.types.builtins.INT8,
-  (value: string) => Number(value),
+pg.types.setTypeParser(pg.types.builtins.INT8, (value: string) =>
+  Number(value),
 );
 
 // Anything that can execute a database query.
@@ -50,11 +47,7 @@ export const withTransaction = async <T>(
   }
 };
 
-
-export const exactlyOne = <T>(
-  rows: readonly T[],
-  description: string,
-): T => {
+export const exactlyOne = <T>(rows: readonly T[], description: string): T => {
   const row = rows[0];
 
   if (row === undefined) {

@@ -10,7 +10,8 @@ export type PlanRecord = Plan & {
 };
 
 export type PlanLookupError = "plan_not_found" | "plan_scope_mismatch";
-export type PlanUpdateError = "plan_not_found" | "plan_read_only" | "name_taken";
+export type PlanUpdateError =
+  "plan_not_found" | "plan_read_only" | "name_taken";
 
 export type PlanInput = {
   readonly name: string;
@@ -46,23 +47,32 @@ const toRecord = (row: PlanRow): PlanRecord => ({
 });
 
 // Callers must pass a valid UUID
-export const findPlanById = async (db: Queryable, id: string): Promise<PlanRecord | null> => {
-  const result = await db.query<PlanRow>(`${PLAN_SELECT} WHERE p.id = $1 GROUP BY p.id`, [id]);
+export const findPlanById = async (
+  db: Queryable,
+  id: string,
+): Promise<PlanRecord | null> => {
+  const result = await db.query<PlanRow>(
+    `${PLAN_SELECT} WHERE p.id = $1 GROUP BY p.id`,
+    [id],
+  );
   const [row] = result.rows;
   return row === undefined ? null : toRecord(row);
 };
 
-export const listPredefinedPlans = async (db: Queryable): Promise<readonly PlanRecord[]> => {
+export const listPredefinedPlans = async (
+  db: Queryable,
+): Promise<readonly PlanRecord[]> => {
   const result = await db.query<PlanRow>(
     `${PLAN_SELECT} WHERE p.owner_account_id IS NULL GROUP BY p.id ORDER BY p.scope, p.name`,
   );
   return result.rows.map(toRecord);
 };
 
-
 //Predefined plans are visible to everyone; custom plans only to their owner. Pure.
-export const isVisibleTo = (plan: PlanRecord, accountId: string | null): boolean =>
-  plan.ownerAccountId === null || plan.ownerAccountId === accountId;
+export const isVisibleTo = (
+  plan: PlanRecord,
+  accountId: string | null,
+): boolean => plan.ownerAccountId === null || plan.ownerAccountId === accountId;
 
 /** Predefined plans first, then the account's own custom plans. */
 export const listPlansForAccount = async (
@@ -117,7 +127,10 @@ const insertRules = async (
   );
 };
 
-const requirePlan = async (db: Queryable, planId: string): Promise<PlanRecord> => {
+const requirePlan = async (
+  db: Queryable,
+  planId: string,
+): Promise<PlanRecord> => {
   const plan = await findPlanById(db, planId);
   if (plan === null) {
     throw new Error(`Plan ${planId} disappeared inside its own transaction`);
@@ -152,10 +165,9 @@ export const createCustomPlan = async (
   }
 };
 
-
-//Replaces a custom plan's name and rules atomically. 
+//Replaces a custom plan's name and rules atomically.
 //The plan row is locked first, so two
-//concurrent updates serialize, 
+//concurrent updates serialize,
 //and readers see either the old rules or the new ones.
 
 export const updateCustomPlan = async (
@@ -182,8 +194,13 @@ export const updateCustomPlan = async (
         if (row.owner_account_id !== accountId) {
           return err("plan_not_found");
         }
-        await client.query("UPDATE plans SET name = $2 WHERE id = $1", [planId, input.name]);
-        await client.query("DELETE FROM plan_rules WHERE plan_id = $1", [planId]);
+        await client.query("UPDATE plans SET name = $2 WHERE id = $1", [
+          planId,
+          input.name,
+        ]);
+        await client.query("DELETE FROM plan_rules WHERE plan_id = $1", [
+          planId,
+        ]);
         await insertRules(client, planId, input.rules);
         return ok(await requirePlan(client, planId));
       },

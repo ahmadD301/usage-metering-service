@@ -51,7 +51,9 @@ describe("account isolation", () => {
   it("allows the same externalId in two accounts, with separate users", async () => {
     const created = await b.post("/users", { externalId: "alice" });
     expect(created.statusCode).toBe(201);
-    expect((await a.get("/users")).json<{ users: unknown[] }>().users).toHaveLength(1);
+    expect(
+      (await a.get("/users")).json<{ users: unknown[] }>().users,
+    ).toHaveLength(1);
   });
 
   it("hides another account's custom plan from lists, reads, updates and assignment", async () => {
@@ -60,7 +62,8 @@ describe("account isolation", () => {
 
     expect((await b.get(`/plans/${customPlanId}`)).statusCode).toBe(404);
     expect(
-      (await b.put(`/plans/${customPlanId}`, { name: "stolen", rules: [] })).statusCode,
+      (await b.put(`/plans/${customPlanId}`, { name: "stolen", rules: [] }))
+        .statusCode,
     ).toBe(404);
 
     await b.post("/users", { externalId: "bob" });
@@ -70,7 +73,9 @@ describe("account isolation", () => {
   });
 
   it("leaves the owner's plan untouched after the foreign attempts", async () => {
-    const plan = (await a.get(`/plans/${customPlanId}`)).json<{ plan: PlanBody }>().plan;
+    const plan = (await a.get(`/plans/${customPlanId}`)).json<{
+      plan: PlanBody;
+    }>().plan;
     expect(plan.name).toBe("A secret plan");
     expect(plan.rules).toEqual([{ kind: "max_per_request", limit: 5 }]);
   });

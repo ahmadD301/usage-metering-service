@@ -24,7 +24,12 @@ export class AppError extends Error {
   readonly code: ErrorCode;
   readonly details: unknown;
 
-  constructor(statusCode: number, code: ErrorCode, message: string, details?: unknown) {
+  constructor(
+    statusCode: number,
+    code: ErrorCode,
+    message: string,
+    details?: unknown,
+  ) {
     super(message);
     this.name = "AppError";
     this.statusCode = statusCode;
@@ -37,27 +42,58 @@ export const httpErrors = {
   validation: (details: unknown): AppError =>
     new AppError(400, "validation_error", "Request validation failed", details),
   missingApiKey: (): AppError =>
-    new AppError(401, "missing_api_key", "Send your API key in the X-API-Key header"),
+    new AppError(
+      401,
+      "missing_api_key",
+      "Send your API key in the X-API-Key header",
+    ),
   invalidApiKey: (): AppError =>
-    new AppError(401, "invalid_api_key", "The API key is invalid or has been revoked"),
+    new AppError(
+      401,
+      "invalid_api_key",
+      "The API key is invalid or has been revoked",
+    ),
   adminUnauthorized: (): AppError =>
-    new AppError(401, "admin_unauthorized", "A valid X-Admin-Token header is required"),
+    new AppError(
+      401,
+      "admin_unauthorized",
+      "A valid X-Admin-Token header is required",
+    ),
   userNotFound: (): AppError =>
     new AppError(404, "user_not_found", "No such user in this account"),
-  planNotFound: (): AppError => new AppError(404, "plan_not_found", "No such plan"),
+  planNotFound: (): AppError =>
+    new AppError(404, "plan_not_found", "No such plan"),
   planScopeMismatch: (expected: Level): AppError =>
-    new AppError(422, "plan_scope_mismatch", `This operation needs a ${expected}-scope plan`),
+    new AppError(
+      422,
+      "plan_scope_mismatch",
+      `This operation needs a ${expected}-scope plan`,
+    ),
   planReadOnly: (): AppError =>
     new AppError(403, "plan_read_only", "Predefined plans are read-only"),
   userAlreadyExists: (): AppError =>
-    new AppError(409, "user_already_exists", "A user with this externalId already exists"),
+    new AppError(
+      409,
+      "user_already_exists",
+      "A user with this externalId already exists",
+    ),
   planNameTaken: (): AppError =>
-    new AppError(409, "plan_name_taken", "This account already has a plan with that name"),
-  notReady: (): AppError => new AppError(503, "not_ready", "The database is not reachable"),
+    new AppError(
+      409,
+      "plan_name_taken",
+      "This account already has a plan with that name",
+    ),
+  notReady: (): AppError =>
+    new AppError(503, "not_ready", "The database is not reachable"),
 };
 
-export const fromPlanLookupError = (error: PlanLookupError, expectedScope: Level): AppError =>
-  error === "plan_not_found" ? httpErrors.planNotFound() : httpErrors.planScopeMismatch(expectedScope);
+export const fromPlanLookupError = (
+  error: PlanLookupError,
+  expectedScope: Level,
+): AppError =>
+  error === "plan_not_found"
+    ? httpErrors.planNotFound()
+    : httpErrors.planScopeMismatch(expectedScope);
 
 export const fromPlanUpdateError = (error: PlanUpdateError): AppError => {
   switch (error) {
@@ -72,12 +108,18 @@ export const fromPlanUpdateError = (error: PlanUpdateError): AppError => {
   }
 };
 
-const errorBody = (code: string, message: string, details?: unknown): object => ({
+const errorBody = (
+  code: string,
+  message: string,
+  details?: unknown,
+): object => ({
   error: { code, message, ...(details === undefined ? {} : { details }) },
 });
 
 const statusOf = (error: Error): number =>
-  "statusCode" in error && typeof error.statusCode === "number" ? error.statusCode : 500;
+  "statusCode" in error && typeof error.statusCode === "number"
+    ? error.statusCode
+    : 500;
 
 export const errorHandler = (
   error: Error,
@@ -95,10 +137,20 @@ export const errorHandler = (
     return reply.status(status).send(errorBody("bad_request", error.message));
   }
   request.log.error(error);
-  return reply.status(500).send(errorBody("internal_error", "Something went wrong"));
+  return reply
+    .status(500)
+    .send(errorBody("internal_error", "Something went wrong"));
 };
 
-export const notFoundHandler = (request: FastifyRequest, reply: FastifyReply): FastifyReply =>
+export const notFoundHandler = (
+  request: FastifyRequest,
+  reply: FastifyReply,
+): FastifyReply =>
   reply
     .status(404)
-    .send(errorBody("not_found", `Route ${request.method} ${request.url} does not exist`));
+    .send(
+      errorBody(
+        "not_found",
+        `Route ${request.method} ${request.url} does not exist`,
+      ),
+    );

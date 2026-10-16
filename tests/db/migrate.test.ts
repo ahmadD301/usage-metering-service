@@ -3,7 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { runMigrations } from "../../src/db/migrate.js";
-import { createTestDb, MIGRATIONS_DIR, type TestDb } from "../helpers/test-db.js";
+import {
+  createTestDb,
+  MIGRATIONS_DIR,
+  type TestDb,
+} from "../helpers/test-db.js";
 
 describe("runMigrations (real migrations)", () => {
   let db: TestDb;
@@ -41,12 +45,18 @@ describe("runMigrations (real migrations)", () => {
   });
 
   it("refuses to continue if an applied migration was edited", async () => {
-    await db.pool.query("UPDATE schema_migrations SET checksum = 'tampered' WHERE version = '0001'");
+    await db.pool.query(
+      "UPDATE schema_migrations SET checksum = 'tampered' WHERE version = '0001'",
+    );
     try {
-      await expect(runMigrations(db.pool, MIGRATIONS_DIR)).rejects.toThrow(/checksum/i);
+      await expect(runMigrations(db.pool, MIGRATIONS_DIR)).rejects.toThrow(
+        /checksum/i,
+      );
     } finally {
       // Put the real checksum back by recording it again from the file on disk.
-      await db.pool.query("DELETE FROM schema_migrations WHERE version = '0001'");
+      await db.pool.query(
+        "DELETE FROM schema_migrations WHERE version = '0001'",
+      );
     }
   });
 });
@@ -70,7 +80,9 @@ describe("runMigrations (failure handling)", () => {
       "CREATE TABLE should_not_exist (id INT); SELECT 1 / 0;",
     );
 
-    await expect(runMigrations(db.pool, dir)).rejects.toThrow(/0001_broken failed/);
+    await expect(runMigrations(db.pool, dir)).rejects.toThrow(
+      /0001_broken failed/,
+    );
 
     const table = await db.pool.query<{ found: string | null }>(
       "SELECT to_regclass('should_not_exist')::text AS found",

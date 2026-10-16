@@ -39,7 +39,10 @@ export const adminRoutes =
         keyHash: apiKey.hash,
       });
       reply.code(201);
-      return { account: toAccountDto(account, planResult.value), apiKey: apiKey.key };
+      return {
+        account: toAccountDto(account, planResult.value),
+        apiKey: apiKey.key,
+      };
     });
 
     done();

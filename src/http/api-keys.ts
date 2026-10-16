@@ -17,4 +17,3 @@ export const generateApiKey = (): GeneratedApiKey => {
   const key = `${prefix}_${secret}`;
   return { key, prefix, hash: hashApiKey(key) };
 };
-

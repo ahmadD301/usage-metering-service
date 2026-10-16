@@ -17,7 +17,8 @@ export type MigrationFile = MigrationMeta & {
 
 type AppliedRow = { version: string; checksum: string };
 
-const sha256 = (text: string): string => createHash("sha256").update(text).digest("hex");
+const sha256 = (text: string): string =>
+  createHash("sha256").update(text).digest("hex");
 
 const parseFileName = (file: string): MigrationMeta | null => {
   const match = FILE_PATTERN.exec(file);
@@ -27,11 +28,16 @@ const parseFileName = (file: string): MigrationMeta | null => {
 };
 
 /** Reads migration files from `dir`, sorted by version. Files that do not match are ignored. */
-export const loadMigrations = async (dir: string): Promise<readonly MigrationFile[]> => {
+export const loadMigrations = async (
+  dir: string,
+): Promise<readonly MigrationFile[]> => {
   const entries = await readdir(dir);
   const found = entries
     .map((file) => ({ file, meta: parseFileName(file) }))
-    .filter((entry): entry is { file: string; meta: MigrationMeta } => entry.meta !== null)
+    .filter(
+      (entry): entry is { file: string; meta: MigrationMeta } =>
+        entry.meta !== null,
+    )
     .slice()
     .sort((a, b) => a.meta.version.localeCompare(b.meta.version));
 
@@ -48,7 +54,10 @@ export const loadMigrations = async (dir: string): Promise<readonly MigrationFil
   );
 };
 
-const applyOne = async (client: pg.PoolClient, migration: MigrationFile): Promise<void> => {
+const applyOne = async (
+  client: pg.PoolClient,
+  migration: MigrationFile,
+): Promise<void> => {
   await client.query("BEGIN");
   try {
     await client.query(migration.sql);
@@ -60,9 +69,12 @@ const applyOne = async (client: pg.PoolClient, migration: MigrationFile): Promis
   } catch (error) {
     await client.query("ROLLBACK");
     const reason = error instanceof Error ? error.message : String(error);
-    throw new Error(`Migration ${migration.version}_${migration.name} failed: ${reason}`, {
-      cause: error,
-    });
+    throw new Error(
+      `Migration ${migration.version}_${migration.name} failed: ${reason}`,
+      {
+        cause: error,
+      },
+    );
   }
 };
 
@@ -87,7 +99,9 @@ export const runMigrations = async (
     const appliedRows = await client.query<AppliedRow>(
       "SELECT version, checksum FROM schema_migrations",
     );
-    const appliedChecksums = new Map(appliedRows.rows.map((row) => [row.version, row.checksum]));
+    const appliedChecksums = new Map(
+      appliedRows.rows.map((row) => [row.version, row.checksum]),
+    );
 
     const newlyApplied: string[] = [];
     for (const migration of migrations) {
@@ -104,7 +118,9 @@ export const runMigrations = async (
     }
     return newlyApplied;
   } finally {
-    await client.query("SELECT pg_advisory_unlock($1)", [MIGRATION_LOCK_KEY]).catch(() => undefined);
+    await client
+      .query("SELECT pg_advisory_unlock($1)", [MIGRATION_LOCK_KEY])
+      .catch(() => undefined);
     client.release();
   }
 };

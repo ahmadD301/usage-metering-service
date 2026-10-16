@@ -8,7 +8,12 @@ export type AccountRecord = {
   readonly createdAt: Date;
 };
 
-type AccountRow = { id: string; name: string; plan_id: string; created_at: Date };
+type AccountRow = {
+  id: string;
+  name: string;
+  plan_id: string;
+  created_at: Date;
+};
 
 const COLUMNS = "id, name, plan_id, created_at";
 
@@ -27,7 +32,10 @@ export type NewAccount = {
 };
 
 /** Creates the account and its first API key together, or neither. */
-export const createAccountWithKey = (pool: pg.Pool, input: NewAccount): Promise<AccountRecord> =>
+export const createAccountWithKey = (
+  pool: pg.Pool,
+  input: NewAccount,
+): Promise<AccountRecord> =>
   withTransaction(pool, async (client) => {
     const inserted = await client.query<AccountRow>(
       `INSERT INTO accounts (name, plan_id) VALUES ($1, $2) RETURNING ${COLUMNS}`,

@@ -4,7 +4,12 @@ import {
   DEFAULT_USER_PLAN_ID,
 } from "../../src/db/predefined-plans.js";
 import { exactlyOne } from "../../src/db/client.js";
-import { createTestDb, insertAccount, insertUser, type TestDb } from "../helpers/test-db.js";
+import {
+  createTestDb,
+  insertAccount,
+  insertUser,
+  type TestDb,
+} from "../helpers/test-db.js";
 
 const FK_VIOLATION = { code: "23503" };
 const UNIQUE_VIOLATION = { code: "23505" };
@@ -23,19 +28,20 @@ describe("schema constraints", () => {
   describe("plan scope", () => {
     it("rejects an account that uses a user-scope plan", async () => {
       await expect(
-        db.pool.query("INSERT INTO accounts (name, plan_id) VALUES ('bad', $1)", [
-          DEFAULT_USER_PLAN_ID,
-        ]),
+        db.pool.query(
+          "INSERT INTO accounts (name, plan_id) VALUES ('bad', $1)",
+          [DEFAULT_USER_PLAN_ID],
+        ),
       ).rejects.toMatchObject(FK_VIOLATION);
     });
 
     it("rejects a user that uses an account-scope plan", async () => {
       const accountId = await insertAccount(db.pool, "scope-check");
       await expect(
-        db.pool.query("INSERT INTO users (account_id, external_id, plan_id) VALUES ($1, 'u', $2)", [
-          accountId,
-          DEFAULT_ACCOUNT_PLAN_ID,
-        ]),
+        db.pool.query(
+          "INSERT INTO users (account_id, external_id, plan_id) VALUES ($1, 'u', $2)",
+          [accountId, DEFAULT_ACCOUNT_PLAN_ID],
+        ),
       ).rejects.toMatchObject(FK_VIOLATION);
     });
   });
@@ -45,29 +51,40 @@ describe("schema constraints", () => {
       const a = await insertAccount(db.pool, "users-a");
       const b = await insertAccount(db.pool, "users-b");
       await insertUser(db.pool, a, "alice");
-      await expect(insertUser(db.pool, a, "alice")).rejects.toMatchObject(UNIQUE_VIOLATION);
-      await expect(insertUser(db.pool, b, "alice")).resolves.toEqual(expect.any(String));
+      await expect(insertUser(db.pool, a, "alice")).rejects.toMatchObject(
+        UNIQUE_VIOLATION,
+      );
+      await expect(insertUser(db.pool, b, "alice")).resolves.toEqual(
+        expect.any(String),
+      );
     });
   });
 
   describe("predefined plans are read-only", () => {
     it("blocks updating and deleting a predefined plan", async () => {
       await expect(
-        db.pool.query("UPDATE plans SET name = 'Hacked' WHERE id = $1", [DEFAULT_ACCOUNT_PLAN_ID]),
+        db.pool.query("UPDATE plans SET name = 'Hacked' WHERE id = $1", [
+          DEFAULT_ACCOUNT_PLAN_ID,
+        ]),
       ).rejects.toMatchObject(CHECK_VIOLATION);
       await expect(
-        db.pool.query("DELETE FROM plans WHERE id = $1", [DEFAULT_ACCOUNT_PLAN_ID]),
+        db.pool.query("DELETE FROM plans WHERE id = $1", [
+          DEFAULT_ACCOUNT_PLAN_ID,
+        ]),
       ).rejects.toMatchObject(CHECK_VIOLATION);
     });
 
     it("blocks changing or deleting the rules of a predefined plan", async () => {
       await expect(
-        db.pool.query("UPDATE plan_rules SET limit_value = 1 WHERE plan_id = $1", [
-          DEFAULT_USER_PLAN_ID,
-        ]),
+        db.pool.query(
+          "UPDATE plan_rules SET limit_value = 1 WHERE plan_id = $1",
+          [DEFAULT_USER_PLAN_ID],
+        ),
       ).rejects.toMatchObject(CHECK_VIOLATION);
       await expect(
-        db.pool.query("DELETE FROM plan_rules WHERE plan_id = $1", [DEFAULT_USER_PLAN_ID]),
+        db.pool.query("DELETE FROM plan_rules WHERE plan_id = $1", [
+          DEFAULT_USER_PLAN_ID,
+        ]),
       ).rejects.toMatchObject(CHECK_VIOLATION);
     });
 
@@ -167,7 +184,9 @@ describe("schema constraints", () => {
       const userB = await insertUser(db.pool, b, "u");
 
       await insertRequest(a, userA, "r-1");
-      await expect(insertRequest(a, userA, "r-1")).rejects.toMatchObject(UNIQUE_VIOLATION);
+      await expect(insertRequest(a, userA, "r-1")).rejects.toMatchObject(
+        UNIQUE_VIOLATION,
+      );
       await expect(insertRequest(b, userB, "r-1")).resolves.toBeDefined();
     });
 
@@ -175,7 +194,9 @@ describe("schema constraints", () => {
       const a = await insertAccount(db.pool, "iso-a");
       const b = await insertAccount(db.pool, "iso-b");
       const userOfB = await insertUser(db.pool, b, "bob");
-      await expect(insertRequest(a, userOfB, "cross")).rejects.toMatchObject(FK_VIOLATION);
+      await expect(insertRequest(a, userOfB, "cross")).rejects.toMatchObject(
+        FK_VIOLATION,
+      );
     });
   });
 

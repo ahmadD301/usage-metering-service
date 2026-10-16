@@ -23,12 +23,19 @@ describe("plans", () => {
 
   it("lists the four predefined plans for a new account", async () => {
     const { plans } = (await api.get("/plans")).json<{ plans: PlanBody[] }>();
-    expect(plans.map((plan) => plan.name).sort()).toEqual(["Basic", "Premium", "Pro", "Starter"]);
+    expect(plans.map((plan) => plan.name).sort()).toEqual([
+      "Basic",
+      "Premium",
+      "Pro",
+      "Starter",
+    ]);
     expect(plans.every((plan) => plan.predefined)).toBe(true);
   });
 
   it("filters the list by scope", async () => {
-    const { plans } = (await api.get("/plans?scope=user")).json<{ plans: PlanBody[] }>();
+    const { plans } = (await api.get("/plans?scope=user")).json<{
+      plans: PlanBody[];
+    }>();
     expect(plans.every((plan) => plan.scope === "user")).toBe(true);
     expect(plans).toHaveLength(2);
   });
@@ -44,7 +51,11 @@ describe("plans", () => {
     });
     expect(created.statusCode).toBe(201);
     const { plan } = created.json<{ plan: PlanBody }>();
-    expect(plan).toMatchObject({ name: "Interns", scope: "user", predefined: false });
+    expect(plan).toMatchObject({
+      name: "Interns",
+      scope: "user",
+      predefined: false,
+    });
     expect(plan.rules).toHaveLength(2);
 
     const list = (await api.get("/plans")).json<{ plans: PlanBody[] }>().plans;
@@ -59,16 +70,24 @@ describe("plans", () => {
     expect(duplicate.statusCode).toBe(409);
     expect(duplicate.json<ErrorBody>().error.code).toBe("plan_name_taken");
 
-    const other = asAccount(t.app, (await createAccount(t.app, "Other Co")).apiKey);
+    const other = asAccount(
+      t.app,
+      (await createAccount(t.app, "Other Co")).apiKey,
+    );
     expect((await other.post("/plans", body)).statusCode).toBe(201);
   });
 
   it("keeps predefined plans read-only", async () => {
-    const response = await api.put(`/plans/${STARTER_PLAN_ID}`, { name: "Hacked", rules: [] });
+    const response = await api.put(`/plans/${STARTER_PLAN_ID}`, {
+      name: "Hacked",
+      rules: [],
+    });
     expect(response.statusCode).toBe(403);
     expect(response.json<ErrorBody>().error.code).toBe("plan_read_only");
 
-    const plan = (await api.get(`/plans/${STARTER_PLAN_ID}`)).json<{ plan: PlanBody }>().plan;
+    const plan = (await api.get(`/plans/${STARTER_PLAN_ID}`)).json<{
+      plan: PlanBody;
+    }>().plan;
     expect(plan.name).toBe("Starter");
     expect(plan.rules).toHaveLength(2);
   });
@@ -91,7 +110,9 @@ describe("plans", () => {
     });
     expect(updated.statusCode).toBe(200);
 
-    const fetched = (await api.get(`/plans/${plan.id}`)).json<{ plan: PlanBody }>().plan;
+    const fetched = (await api.get(`/plans/${plan.id}`)).json<{
+      plan: PlanBody;
+    }>().plan;
     expect(fetched.name).toBe("Editable v2");
     expect(fetched.rules).toHaveLength(2);
     expect(fetched.rules).toEqual(
@@ -119,10 +140,14 @@ describe("plans", () => {
     });
 
     for (const externalId of ["s1", "s2"]) {
-      const effective = (await api.get(`/users/${externalId}/effective-plans`)).json<{
+      const effective = (
+        await api.get(`/users/${externalId}/effective-plans`)
+      ).json<{
         user: { plan: PlanBody };
       }>();
-      expect(effective.user.plan.rules).toEqual([{ kind: "max_per_request", limit: 99 }]);
+      expect(effective.user.plan.rules).toEqual([
+        { kind: "max_per_request", limit: 99 },
+      ]);
     }
   });
 
@@ -135,17 +160,29 @@ describe("plans", () => {
       })
     ).json<{ plan: PlanBody }>();
 
-    expect((await api.put("/account/plan", { planId: plan.id })).statusCode).toBe(200);
-    const account = (await api.get("/account")).json<{ account: { plan: PlanBody } }>().account;
+    expect(
+      (await api.put("/account/plan", { planId: plan.id })).statusCode,
+    ).toBe(200);
+    const account = (await api.get("/account")).json<{
+      account: { plan: PlanBody };
+    }>().account;
     expect(account.plan.id).toBe(plan.id);
   });
 
   it("enforces plan scope on assignment (422)", async () => {
     const userPlan = (
-      await api.post("/plans", { name: "User scoped", scope: "user", rules: [] })
+      await api.post("/plans", {
+        name: "User scoped",
+        scope: "user",
+        rules: [],
+      })
     ).json<{ plan: PlanBody }>().plan;
     const accountPlan = (
-      await api.post("/plans", { name: "Account scoped", scope: "account", rules: [] })
+      await api.post("/plans", {
+        name: "Account scoped",
+        scope: "account",
+        rules: [],
+      })
     ).json<{ plan: PlanBody }>().plan;
     await api.post("/users", { externalId: "scope-user" });
 
@@ -153,15 +190,44 @@ describe("plans", () => {
     expect(toAccount.statusCode).toBe(422);
     expect(toAccount.json<ErrorBody>().error.code).toBe("plan_scope_mismatch");
 
-    const toUser = await api.put("/users/scope-user/plan", { planId: accountPlan.id });
+    const toUser = await api.put("/users/scope-user/plan", {
+      planId: accountPlan.id,
+    });
     expect(toUser.statusCode).toBe(422);
   });
 
   it.each([
-    ["duplicate rule kinds", { name: "x", scope: "user", rules: [{ kind: "max_per_request", limit: 1 }, { kind: "max_per_request", limit: 2 }] }],
-    ["negative limit", { name: "x", scope: "user", rules: [{ kind: "monthly_allowance", limit: -1 }] }],
-    ["fractional limit", { name: "x", scope: "user", rules: [{ kind: "monthly_allowance", limit: 1.5 }] }],
-    ["unknown rule kind", { name: "x", scope: "user", rules: [{ kind: "per_minute", limit: 1 }] }],
+    [
+      "duplicate rule kinds",
+      {
+        name: "x",
+        scope: "user",
+        rules: [
+          { kind: "max_per_request", limit: 1 },
+          { kind: "max_per_request", limit: 2 },
+        ],
+      },
+    ],
+    [
+      "negative limit",
+      {
+        name: "x",
+        scope: "user",
+        rules: [{ kind: "monthly_allowance", limit: -1 }],
+      },
+    ],
+    [
+      "fractional limit",
+      {
+        name: "x",
+        scope: "user",
+        rules: [{ kind: "monthly_allowance", limit: 1.5 }],
+      },
+    ],
+    [
+      "unknown rule kind",
+      { name: "x", scope: "user", rules: [{ kind: "per_minute", limit: 1 }] },
+    ],
     ["unknown scope", { name: "x", scope: "team", rules: [] }],
     ["missing name", { scope: "user", rules: [] }],
   ])("rejects an invalid plan body: %s", async (_label, body) => {

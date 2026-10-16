@@ -14,18 +14,24 @@ describe("loadConfig", () => {
   });
 
   it("reads overrides", () => {
-    expect(loadConfig({ ...valid, PORT: "8080", MIGRATIONS_DIR: "/m" })).toMatchObject({
+    expect(
+      loadConfig({ ...valid, PORT: "8080", MIGRATIONS_DIR: "/m" }),
+    ).toMatchObject({
       port: 8080,
       migrationsDir: "/m",
     });
   });
 
   it("fails fast on a missing database url", () => {
-    expect(() => loadConfig({ ADMIN_TOKEN: valid.ADMIN_TOKEN })).toThrow(/DATABASE_URL/);
+    expect(() => loadConfig({ ADMIN_TOKEN: valid.ADMIN_TOKEN })).toThrow(
+      /DATABASE_URL/,
+    );
   });
 
   it("rejects a short admin token and a bad port", () => {
-    expect(() => loadConfig({ ...valid, ADMIN_TOKEN: "short" })).toThrow(/ADMIN_TOKEN/);
+    expect(() => loadConfig({ ...valid, ADMIN_TOKEN: "short" })).toThrow(
+      /ADMIN_TOKEN/,
+    );
     expect(() => loadConfig({ ...valid, PORT: "99999" })).toThrow(/PORT/);
   });
 });

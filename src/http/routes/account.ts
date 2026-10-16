@@ -12,11 +12,21 @@ import {
   type PlanRecord,
 } from "../../db/plans.js";
 import { DEFAULT_USER_PLAN_ID } from "../../db/predefined-plans.js";
-import { createUser, findUser, listUsers, setUserPlan } from "../../db/users.js";
+import {
+  createUser,
+  findUser,
+  listUsers,
+  setUserPlan,
+} from "../../db/users.js";
 import type pg from "pg";
 import { accountOf, requireApiKey } from "../auth.js";
 import type { AppDeps } from "../deps.js";
-import { toAccountDto, toPlanDto, toUserDto, toUserSummaryDto } from "../dto.js";
+import {
+  toAccountDto,
+  toPlanDto,
+  toUserDto,
+  toUserSummaryDto,
+} from "../dto.js";
 import {
   fromPlanLookupError,
   fromPlanUpdateError,
@@ -38,9 +48,12 @@ const rulesSchema = z
     }),
   )
   .max(RULE_KINDS.length)
-  .refine((rules) => new Set(rules.map((rule) => rule.kind)).size === rules.length, {
-    message: "each rule kind may appear at most once",
-  });
+  .refine(
+    (rules) => new Set(rules.map((rule) => rule.kind)).size === rules.length,
+    {
+      message: "each rule kind may appear at most once",
+    },
+  );
 
 const planBody = z.object({
   name: z.string().trim().min(1).max(100),
@@ -62,7 +75,10 @@ const planParams = z.object({ planId: planIdSchema });
 
 // ---- Small helpers ----
 //Plans referenced by a stored account/user always exist (foreign keys).
-const requirePlan = async (pool: pg.Pool, planId: string): Promise<PlanRecord> => {
+const requirePlan = async (
+  pool: pg.Pool,
+  planId: string,
+): Promise<PlanRecord> => {
   const plan = await findPlanById(pool, planId);
   if (plan === null) {
     throw new Error(`Plan ${planId} is referenced but missing`);
@@ -80,13 +96,20 @@ export const accountRoutes =
 
     scope.get("/account", async (request) => {
       const account = accountOf(request);
-      return { account: toAccountDto(account, await requirePlan(pool, account.planId)) };
+      return {
+        account: toAccountDto(account, await requirePlan(pool, account.planId)),
+      };
     });
 
     scope.put("/account/plan", async (request) => {
       const account = accountOf(request);
       const { planId } = parseWith(assignPlanBody, request.body);
-      const found = await findAssignablePlan(pool, account.id, planId, "account");
+      const found = await findAssignablePlan(
+        pool,
+        account.id,
+        planId,
+        "account",
+      );
       if (!found.type || found.type === "err") {
         throw fromPlanLookupError(found.error, "account");
       }
@@ -108,7 +131,12 @@ export const accountRoutes =
       if (!found.type || found.type === "err") {
         throw fromPlanLookupError(found.error, "user");
       }
-      const created = await createUser(pool, account.id, body.externalId, found.value.id);
+      const created = await createUser(
+        pool,
+        account.id,
+        body.externalId,
+        found.value.id,
+      );
       if (!created.type || created.type === "err") {
         throw httpErrors.userAlreadyExists();
       }
@@ -123,7 +151,10 @@ export const accountRoutes =
         limit: query.limit,
         after: query.after ?? null,
       });
-      return { users: page.users.map(toUserSummaryDto), nextCursor: page.nextCursor };
+      return {
+        users: page.users.map(toUserSummaryDto),
+        nextCursor: page.nextCursor,
+      };
     });
 
     scope.get("/users/:externalId", async (request) => {
@@ -148,7 +179,12 @@ export const accountRoutes =
       if (!found.type || found.type === "err") {
         throw fromPlanLookupError(found.error, "user");
       }
-      const updated = await setUserPlan(pool, account.id, externalId, found.value.id);
+      const updated = await setUserPlan(
+        pool,
+        account.id,
+        externalId,
+        found.value.id,
+      );
       if (updated === null) {
         throw httpErrors.userNotFound();
       }
@@ -181,7 +217,9 @@ export const accountRoutes =
       const plans = await listPlansForAccount(pool, account.id);
       return {
         plans: plans
-          .filter((plan) => query.scope === undefined || plan.scope === query.scope)
+          .filter(
+            (plan) => query.scope === undefined || plan.scope === query.scope,
+          )
           .map(toPlanDto),
       };
     });

@@ -25,9 +25,9 @@ export const seedPredefinedPlans = async (pool: pg.Pool): Promise<void> => {
 
 /*
  * Purpose: an idempotent seed. ON CONFLICT DO NOTHING
- * means running it on every startup is safe, 
+ * means running it on every startup is safe,
  * even from two instances at once.
- * It never overwrites existing rows, 
+ * It never overwrites existing rows,
  * so a predefined plan’s limits can’t change by editing the constants.
  * a change needs a new migration, which fits the “read-only” requirement.
  */

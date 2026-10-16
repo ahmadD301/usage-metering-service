@@ -58,9 +58,20 @@ export const createAccount = async (
 
 //Small client bound to one API key.
 export const asAccount = (app: FastifyInstance, apiKey: string) => ({
-  get: (url: string) => app.inject({ method: "GET", url, headers: { "x-api-key": apiKey } }),
+  get: (url: string) =>
+    app.inject({ method: "GET", url, headers: { "x-api-key": apiKey } }),
   post: (url: string, payload: object) =>
-    app.inject({ method: "POST", url, headers: { "x-api-key": apiKey }, payload }),
+    app.inject({
+      method: "POST",
+      url,
+      headers: { "x-api-key": apiKey },
+      payload,
+    }),
   put: (url: string, payload: object) =>
-    app.inject({ method: "PUT", url, headers: { "x-api-key": apiKey }, payload }),
+    app.inject({
+      method: "PUT",
+      url,
+      headers: { "x-api-key": apiKey },
+      payload,
+    }),
 });

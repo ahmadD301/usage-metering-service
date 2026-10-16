@@ -10,7 +10,11 @@ import {
   type TestApp,
 } from "../helpers/test-app.js";
 
-const createRaw = (t: TestApp, payload: object, token: string | null = ADMIN_TOKEN) =>
+const createRaw = (
+  t: TestApp,
+  payload: object,
+  token: string | null = ADMIN_TOKEN,
+) =>
   t.app.inject({
     method: "POST",
     url: "/accounts",
@@ -39,7 +43,9 @@ describe("POST /accounts (admin provisioning)", () => {
 
   it("does not accept an account API key as an admin token", async () => {
     const account = await createAccount(t.app, "Not admin");
-    expect((await createRaw(t, { name: "B" }, account.apiKey)).statusCode).toBe(401);
+    expect((await createRaw(t, { name: "B" }, account.apiKey)).statusCode).toBe(
+      401,
+    );
   });
 
   it("creates an account on the Starter plan and returns the key once", async () => {
@@ -51,7 +57,11 @@ describe("POST /accounts (admin provisioning)", () => {
     }>();
     expect(body.apiKey).toMatch(/^mk_[0-9a-f]{8}_[A-Za-z0-9_-]{43}$/);
     expect(body.account.name).toBe("Acme");
-    expect(body.account.plan).toMatchObject({ name: "Starter", scope: "account", predefined: true });
+    expect(body.account.plan).toMatchObject({
+      name: "Starter",
+      scope: "account",
+      predefined: true,
+    });
 
     const again = await asAccount(t.app, body.apiKey).get("/account");
     expect(again.statusCode).toBe(200);
@@ -59,9 +69,14 @@ describe("POST /accounts (admin provisioning)", () => {
   });
 
   it("lets the caller choose another predefined account plan", async () => {
-    const response = await createRaw(t, { name: "Big Co", planId: PRO_PLAN_ID });
+    const response = await createRaw(t, {
+      name: "Big Co",
+      planId: PRO_PLAN_ID,
+    });
     expect(response.statusCode).toBe(201);
-    expect(response.json<{ account: { plan: PlanBody } }>().account.plan.name).toBe("Pro");
+    expect(
+      response.json<{ account: { plan: PlanBody } }>().account.plan.name,
+    ).toBe("Pro");
   });
 
   it("rejects a user-scope plan with 422", async () => {

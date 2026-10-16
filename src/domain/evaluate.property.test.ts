@@ -84,11 +84,17 @@ describe("evaluate: properties", () => {
 
   it("is monotonic: if N units are accepted, any smaller amount is accepted too", () => {
     fc.assert(
-      fc.property(contextArb, fc.integer({ min: 1, max: 30_000 }), (ctx, smaller) => {
-        fc.pre(smaller <= ctx.requested);
-        fc.pre(evaluate(ctx).kind === "accepted");
-        expect(evaluate({ ...ctx, requested: units(smaller) }).kind).toBe("accepted");
-      }),
+      fc.property(
+        contextArb,
+        fc.integer({ min: 1, max: 30_000 }),
+        (ctx, smaller) => {
+          fc.pre(smaller <= ctx.requested);
+          fc.pre(evaluate(ctx).kind === "accepted");
+          expect(evaluate({ ...ctx, requested: units(smaller) }).kind).toBe(
+            "accepted",
+          );
+        },
+      ),
     );
   });
 });

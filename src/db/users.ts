@@ -75,7 +75,10 @@ export const listUsers = async (
   const last = users.at(-1);
   return {
     users,
-    nextCursor: rows.length > options.limit && last !== undefined ? last.externalId : null,
+    nextCursor:
+      rows.length > options.limit && last !== undefined
+        ? last.externalId
+        : null,
   };
 };
 

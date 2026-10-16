@@ -17,7 +17,9 @@ export type Config = {
   readonly migrationsDir: string;
 };
 
-export const loadConfig = (env: Readonly<Record<string, string | undefined>>): Config => {
+export const loadConfig = (
+  env: Readonly<Record<string, string | undefined>>,
+): Config => {
   const parsed = envSchema.safeParse(env);
   if (!parsed.success) {
     const problems = parsed.error.issues
@@ -31,9 +33,10 @@ export const loadConfig = (env: Readonly<Record<string, string | undefined>>): C
     adminToken: values.ADMIN_TOKEN,
     port: values.PORT,
     host: values.HOST,
-    migrationsDir: values.MIGRATIONS_DIR ?? path.resolve(process.cwd(), "migrations"),
+    migrationsDir:
+      values.MIGRATIONS_DIR ?? path.resolve(process.cwd(), "migrations"),
   };
 };
 
-// Reads and validates environment variables once at startup. 
+// Reads and validates environment variables once at startup.
 // The service refuses to start with a missing database URL or a weak admin token.
