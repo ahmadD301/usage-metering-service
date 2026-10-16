@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "noEmit": false },
+  "compilerOptions": { "noEmit": false, "outDir": "dist", "rootDir": "." },
   "include": ["src", "client"],
   "exclude": ["**/*.test.ts"]
 }

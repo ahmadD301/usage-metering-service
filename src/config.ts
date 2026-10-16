@@ -34,3 +34,6 @@ export const loadConfig = (env: Readonly<Record<string, string | undefined>>): C
     migrationsDir: values.MIGRATIONS_DIR ?? path.resolve(process.cwd(), "migrations"),
   };
 };
+
+// Reads and validates environment variables once at startup. 
+// The service refuses to start with a missing database URL or a weak admin token.

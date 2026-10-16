@@ -1,5 +1,7 @@
 node_modules/
 dist/
+src/**/*.js
+client/**/*.js
 coverage/
 .env
 *.log
