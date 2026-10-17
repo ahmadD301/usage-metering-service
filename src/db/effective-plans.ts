@@ -41,7 +41,10 @@ export const loadEffectivePlans = async (
   accountId: string,
   externalId: string,
 ): Promise<EffectivePlans | null> => {
-  const result = await db.query<Row>(EFFECTIVE_PLANS_SQL, [accountId, externalId]);
+  const result = await db.query<Row>(EFFECTIVE_PLANS_SQL, [
+    accountId,
+    externalId,
+  ]);
   const [row] = result.rows;
   if (row === undefined) {
     return null;

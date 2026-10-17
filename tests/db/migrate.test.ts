@@ -3,7 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { loadMigrations, runMigrations } from "../../src/db/migrate.js";
-import { createTestDb, MIGRATIONS_DIR, type TestDb } from "../helpers/test-db.js";
+import {
+  createTestDb,
+  MIGRATIONS_DIR,
+  type TestDb,
+} from "../helpers/test-db.js";
 
 describe("runMigrations (real migrations)", () => {
   let db: TestDb;
@@ -16,7 +20,9 @@ describe("runMigrations (real migrations)", () => {
   });
 
   it("applies every pending migration once, in order, and creates the expected tables", async () => {
-    const expected = (await loadMigrations(MIGRATIONS_DIR)).map((migration) => migration.version);
+    const expected = (await loadMigrations(MIGRATIONS_DIR)).map(
+      (migration) => migration.version,
+    );
     expect(expected.length).toBeGreaterThanOrEqual(2);
     expect(await runMigrations(db.pool, MIGRATIONS_DIR)).toEqual(expected);
 
@@ -43,7 +49,9 @@ describe("runMigrations (real migrations)", () => {
       `SELECT column_name FROM information_schema.columns
        WHERE table_schema = current_schema() AND table_name = 'requests'`,
     );
-    expect(columns.rows.map((row) => row.column_name)).toContain("period_month");
+    expect(columns.rows.map((row) => row.column_name)).toContain(
+      "period_month",
+    );
   });
 
   it("is idempotent: a second run applies nothing", async () => {
@@ -54,7 +62,9 @@ describe("runMigrations (real migrations)", () => {
     await db.pool.query(
       "UPDATE schema_migrations SET checksum = 'tampered' WHERE version = '0001'",
     );
-    await expect(runMigrations(db.pool, MIGRATIONS_DIR)).rejects.toThrow(/checksum/i);
+    await expect(runMigrations(db.pool, MIGRATIONS_DIR)).rejects.toThrow(
+      /checksum/i,
+    );
   });
 });
 
@@ -77,7 +87,9 @@ describe("runMigrations (failure handling)", () => {
       "CREATE TABLE should_not_exist (id INT); SELECT 1 / 0;",
     );
 
-    await expect(runMigrations(db.pool, dir)).rejects.toThrow(/0001_broken failed/);
+    await expect(runMigrations(db.pool, dir)).rejects.toThrow(
+      /0001_broken failed/,
+    );
 
     const table = await db.pool.query<{ found: string | null }>(
       "SELECT to_regclass('should_not_exist')::text AS found",

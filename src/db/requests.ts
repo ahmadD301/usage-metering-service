@@ -31,10 +31,12 @@ export type NewRequest = {
   readonly periodMonth: string;
 };
 
-
 //created_at is the real insertion time. Inserts for one account happen while holding that
 //account's lock, so this order matches the order decisions were made in.
-export const insertRequest = async (db: Queryable, request: NewRequest): Promise<void> => {
+export const insertRequest = async (
+  db: Queryable,
+  request: NewRequest,
+): Promise<void> => {
   await db.query(
     `INSERT INTO requests
        (account_id, user_id, request_id, units, fingerprint, outcome, decision, period_month, created_at)
@@ -68,7 +70,10 @@ export type HistoryFilter = {
   readonly after: HistoryCursor | null;
 };
 
-export type HistoryEntry = { readonly decision: StoredDecision; readonly createdAt: Date };
+export type HistoryEntry = {
+  readonly decision: StoredDecision;
+  readonly createdAt: Date;
+};
 
 export type HistoryPage = {
   readonly entries: readonly HistoryEntry[];
@@ -82,7 +87,10 @@ type HistoryRow = {
   created_at_exact: string;
 };
 
-export const listHistory = async (db: Queryable, filter: HistoryFilter): Promise<HistoryPage> => {
+export const listHistory = async (
+  db: Queryable,
+  filter: HistoryFilter,
+): Promise<HistoryPage> => {
   const values: unknown[] = [filter.accountId];
   const bind = (value: unknown): string => {
     values.push(value);
@@ -119,7 +127,10 @@ export const listHistory = async (db: Queryable, filter: HistoryFilter): Promise
   const rows = result.rows.slice(0, filter.limit);
   const last = rows.at(-1);
   return {
-    entries: rows.map((row) => ({ decision: row.decision, createdAt: row.created_at })),
+    entries: rows.map((row) => ({
+      decision: row.decision,
+      createdAt: row.created_at,
+    })),
     nextCursor:
       result.rows.length > filter.limit && last !== undefined
         ? { createdAt: last.created_at_exact, id: last.id }

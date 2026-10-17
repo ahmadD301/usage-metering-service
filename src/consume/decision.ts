@@ -32,10 +32,19 @@ export const buildStoredDecision = (input: DecisionInput): StoredDecision => {
       decision.kind === "accepted"
         ? null
         : { primary: decision.primary, violations: decision.violations },
-    plans: { account: planRef(input.account.plan), user: planRef(input.user.plan) },
+    plans: {
+      account: planRef(input.account.plan),
+      user: planRef(input.user.plan),
+    },
     remaining: {
-      account: remainingSummary(input.account.plan, usageAfter(decision, input.account.usage)),
-      user: remainingSummary(input.user.plan, usageAfter(decision, input.user.usage)),
+      account: remainingSummary(
+        input.account.plan,
+        usageAfter(decision, input.account.usage),
+      ),
+      user: remainingSummary(
+        input.user.plan,
+        usageAfter(decision, input.user.usage),
+      ),
     },
     decidedAt: input.now.toISOString(),
   };

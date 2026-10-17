@@ -1,4 +1,9 @@
-import { dayPeriodKey, monthPeriodKey, type Plan, type UsageSnapshot } from "../domain/index.js";
+import {
+  dayPeriodKey,
+  monthPeriodKey,
+  type Plan,
+  type UsageSnapshot,
+} from "../domain/index.js";
 import { remainingSummary, type RemainingSummary } from "../domain/usage.js";
 import type { PlanRef } from "./types.js";
 
@@ -12,10 +17,13 @@ export type PeriodView = {
   readonly dayStart: string | null;
 };
 
-
-export const periodFor = (requested: string | undefined, now: Date): PeriodView => {
+export const periodFor = (
+  requested: string | undefined,
+  now: Date,
+): PeriodView => {
   const currentMonthStart = monthPeriodKey(now);
-  const monthStart = requested === undefined ? currentMonthStart : `${requested}-01`;
+  const monthStart =
+    requested === undefined ? currentMonthStart : `${requested}-01`;
   const isCurrent = monthStart === currentMonthStart;
   return {
     monthStart,
@@ -43,6 +51,9 @@ export const buildUsageView = (
   month: period.label,
   isCurrentMonth: period.isCurrent,
   plan: { id: plan.id, name: plan.name },
-  consumed: { month: usage.monthUsed, today: period.isCurrent ? usage.dayUsed : null },
+  consumed: {
+    month: usage.monthUsed,
+    today: period.isCurrent ? usage.dayUsed : null,
+  },
   remaining: period.isCurrent ? remainingSummary(plan, usage) : null,
 });

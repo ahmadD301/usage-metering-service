@@ -2,7 +2,10 @@ import type { UsageSnapshot } from "../domain/index.js";
 import { emptyUsage } from "../domain/usage.js";
 import type { Queryable } from "./client.js";
 
-export type UsagePair = { readonly account: UsageSnapshot; readonly user: UsageSnapshot };
+export type UsagePair = {
+  readonly account: UsageSnapshot;
+  readonly user: UsageSnapshot;
+};
 
 type UsageRow = {
   owner: "account" | "user";
@@ -16,7 +19,9 @@ const applyRow = (pair: UsagePair, row: UsageRow): UsagePair => {
     row.period_kind === "month"
       ? { ...current, monthUsed: row.units_used }
       : { ...current, dayUsed: row.units_used };
-  return row.owner === "account" ? { ...pair, account: next } : { ...pair, user: next };
+  return row.owner === "account"
+    ? { ...pair, account: next }
+    : { ...pair, user: next };
 };
 
 // Folds counter rows into usage snapshots. A missing row means zero.
@@ -47,7 +52,10 @@ const USAGE_SQL = `
       OR (period_kind = 'day' AND $3::date IS NOT NULL AND period_start = $3::date))
 `;
 
-export const readUsage = async (db: Queryable, query: UsageQuery): Promise<UsagePair> => {
+export const readUsage = async (
+  db: Queryable,
+  query: UsageQuery,
+): Promise<UsagePair> => {
   const result = await db.query<UsageRow>(USAGE_SQL, [
     query.accountId,
     query.monthStart,
@@ -71,7 +79,6 @@ export const ensureAccountMonthRow = async (
   );
 };
 
-
 //every consume for an account takes this row lock first and holds it
 //until COMMIT, so account-level decisions and all counter updates for the account run one at a
 //time. Because it is the only lock taken, deadlocks between consume calls cannot happen.
@@ -87,7 +94,9 @@ export const lockAccountMonth = async (
     [accountId, monthStart],
   );
   if (result.rowCount === 0) {
-    throw new Error("Account month counter row is missing right after it was created");
+    throw new Error(
+      "Account month counter row is missing right after it was created",
+    );
   }
 };
 
@@ -98,7 +107,10 @@ type RecordAccountUsage = {
   readonly units: number;
 };
 
-export const recordAccountUsage = async (db: Queryable, input: RecordAccountUsage): Promise<void> => {
+export const recordAccountUsage = async (
+  db: Queryable,
+  input: RecordAccountUsage,
+): Promise<void> => {
   await db.query(
     `INSERT INTO account_usage (account_id, period_kind, period_start, units_used)
      VALUES ($1, 'month', $2::date, $4), ($1, 'day', $3::date, $4)
@@ -115,7 +127,10 @@ type RecordUserUsage = {
   readonly units: number;
 };
 
-export const recordUserUsage = async (db: Queryable, input: RecordUserUsage): Promise<void> => {
+export const recordUserUsage = async (
+  db: Queryable,
+  input: RecordUserUsage,
+): Promise<void> => {
   await db.query(
     `INSERT INTO user_usage (user_id, period_kind, period_start, units_used)
      VALUES ($1, 'month', $2::date, $4), ($1, 'day', $3::date, $4)

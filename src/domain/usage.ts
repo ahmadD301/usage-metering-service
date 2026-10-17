@@ -4,7 +4,10 @@ import type { Plan, UsageSnapshot } from "./types.js";
 export const emptyUsage: UsageSnapshot = { monthUsed: 0, dayUsed: 0 };
 
 // New usage after consuming `units`. The input is never modified.
-export const addUsage = (usage: UsageSnapshot, units: number): UsageSnapshot => ({
+export const addUsage = (
+  usage: UsageSnapshot,
+  units: number,
+): UsageSnapshot => ({
   monthUsed: usage.monthUsed + units,
   dayUsed: usage.dayUsed + units,
 });
@@ -16,7 +19,10 @@ export type RemainingSummary = {
   readonly maxPerRequest: number | null;
 };
 
-export const remainingSummary = (plan: Plan, usage: UsageSnapshot): RemainingSummary => ({
+export const remainingSummary = (
+  plan: Plan,
+  usage: UsageSnapshot,
+): RemainingSummary => ({
   monthlyAllowance: remainingFor(plan, "monthly_allowance", usage),
   dailyAllowance: remainingFor(plan, "daily_allowance", usage),
   maxPerRequest: remainingFor(plan, "max_per_request", usage),

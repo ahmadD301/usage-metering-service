@@ -68,12 +68,18 @@ describe("consume", () => {
 
   const newAccount = async (): Promise<Api> => {
     accountCounter += 1;
-    const account = await createAccount(t.app, `Acme ${String(accountCounter)}`);
+    const account = await createAccount(
+      t.app,
+      `Acme ${String(accountCounter)}`,
+    );
     return asAccount(t.app, account.apiKey);
   };
 
   const addUser = (api: Api, externalId: string, planId?: string) =>
-    api.post("/users", planId === undefined ? { externalId } : { externalId, planId });
+    api.post(
+      "/users",
+      planId === undefined ? { externalId } : { externalId, planId },
+    );
 
   const addPlan = async (
     api: Api,
@@ -114,7 +120,11 @@ describe("consume", () => {
       const api = await newAccount();
       await addUser(api, "alice");
 
-      const body = await consumeOk(api, { userId: "alice", requestId: "r1", units: 10 });
+      const body = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r1",
+        units: 10,
+      });
 
       expect(body).toMatchObject({
         requestId: "r1",
@@ -124,7 +134,10 @@ describe("consume", () => {
         replayed: false,
         reason: null,
       });
-      expect(body.plans).toMatchObject({ account: { name: "Starter" }, user: { name: "Basic" } });
+      expect(body.plans).toMatchObject({
+        account: { name: "Starter" },
+        user: { name: "Basic" },
+      });
       expect(body.remaining.user).toEqual({
         monthlyAllowance: 990,
         dailyAllowance: null,
@@ -141,7 +154,11 @@ describe("consume", () => {
       const api = await newAccount();
       await addUser(api, "alice");
 
-      const body = await consumeOk(api, { userId: "alice", requestId: "r1", units: 25 });
+      const body = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r1",
+        units: 25,
+      });
 
       expect(body.accepted).toBe(false);
       expect(body.reason?.primary).toEqual({
@@ -165,15 +182,25 @@ describe("consume", () => {
         { kind: "monthly_allowance", limit: 25 },
         { kind: "max_per_request", limit: 100 },
       ]);
-      expect((await api.put("/account/plan", { planId: tiny.id })).statusCode).toBe(200);
+      expect(
+        (await api.put("/account/plan", { planId: tiny.id })).statusCode,
+      ).toBe(200);
       await addUser(api, "alice");
       await addUser(api, "bob", PREMIUM_PLAN_ID);
 
-      const first = await consumeOk(api, { userId: "bob", requestId: "r1", units: 20 });
+      const first = await consumeOk(api, {
+        userId: "bob",
+        requestId: "r1",
+        units: 20,
+      });
       expect(first.accepted).toBe(true);
       expect(first.remaining.account.monthlyAllowance).toBe(5);
 
-      const second = await consumeOk(api, { userId: "alice", requestId: "r2", units: 10 });
+      const second = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r2",
+        units: 10,
+      });
       expect(second.accepted).toBe(false);
       expect(second.reason?.primary).toEqual({
         level: "account",
@@ -207,11 +234,19 @@ describe("consume", () => {
       ]);
       await addUser(api, "alice", daily.id);
 
-      const first = await consumeOk(api, { userId: "alice", requestId: "r1", units: 20 });
+      const first = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r1",
+        units: 20,
+      });
       expect(first.accepted).toBe(true);
       expect(first.remaining.user.dailyAllowance).toBe(10);
 
-      const second = await consumeOk(api, { userId: "alice", requestId: "r2", units: 20 });
+      const second = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r2",
+        units: 20,
+      });
       expect(second.accepted).toBe(false);
       expect(second.reason?.primary).toEqual({
         level: "user",
@@ -223,7 +258,11 @@ describe("consume", () => {
       });
 
       clock.set("2026-10-17T00:00:00.000Z");
-      const third = await consumeOk(api, { userId: "alice", requestId: "r3", units: 20 });
+      const third = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r3",
+        units: 20,
+      });
       expect(third.accepted).toBe(true);
       expect(third.remaining.user.dailyAllowance).toBe(10);
       expect(third.remaining.user.monthlyAllowance).toBe(960);
@@ -240,11 +279,19 @@ describe("consume", () => {
       await addUser(api, "alice", small.id);
 
       clock.set("2026-10-31T23:59:59.999Z");
-      const used = await consumeOk(api, { userId: "alice", requestId: "r1", units: 20 });
+      const used = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r1",
+        units: 20,
+      });
       expect(used.accepted).toBe(true);
       expect(used.remaining.user.monthlyAllowance).toBe(0);
 
-      const blocked = await consumeOk(api, { userId: "alice", requestId: "r2", units: 1 });
+      const blocked = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r2",
+        units: 1,
+      });
       expect(blocked.accepted).toBe(false);
       expect(blocked.reason?.primary).toMatchObject({
         level: "user",
@@ -254,7 +301,11 @@ describe("consume", () => {
       });
 
       clock.set("2026-11-01T00:00:00.000Z");
-      const fresh = await consumeOk(api, { userId: "alice", requestId: "r3", units: 1 });
+      const fresh = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r3",
+        units: 1,
+      });
       expect(fresh.accepted).toBe(true);
       expect(fresh.remaining.user.monthlyAllowance).toBe(19);
 
@@ -280,8 +331,16 @@ describe("consume", () => {
       const api = await newAccount();
       await addUser(api, "alice");
 
-      const first = await consumeOk(api, { userId: "alice", requestId: "r1", units: 10 });
-      const second = await consumeOk(api, { userId: "alice", requestId: "r1", units: 10 });
+      const first = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r1",
+        units: 10,
+      });
+      const second = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r1",
+        units: 10,
+      });
 
       expect(first.replayed).toBe(false);
       expect(second.replayed).toBe(true);
@@ -294,16 +353,31 @@ describe("consume", () => {
       const api = await newAccount();
       await addUser(api, "alice");
 
-      const rejected = await consumeOk(api, { userId: "alice", requestId: "r1", units: 25 });
+      const rejected = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r1",
+        units: 25,
+      });
       expect(rejected.accepted).toBe(false);
 
-      expect((await api.put("/users/alice/plan", { planId: PREMIUM_PLAN_ID })).statusCode).toBe(200);
+      expect(
+        (await api.put("/users/alice/plan", { planId: PREMIUM_PLAN_ID }))
+          .statusCode,
+      ).toBe(200);
 
-      const retry = await consumeOk(api, { userId: "alice", requestId: "r1", units: 25 });
+      const retry = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r1",
+        units: 25,
+      });
       expect(retry.replayed).toBe(true);
       expect(retry.accepted).toBe(false);
 
-      const fresh = await consumeOk(api, { userId: "alice", requestId: "r2", units: 25 });
+      const fresh = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r2",
+        units: 25,
+      });
       expect(fresh.accepted).toBe(true);
     });
 
@@ -313,11 +387,21 @@ describe("consume", () => {
       await addUser(api, "bob");
       await consumeOk(api, { userId: "alice", requestId: "r1", units: 10 });
 
-      const otherUnits = await api.post("/consume", { userId: "alice", requestId: "r1", units: 11 });
+      const otherUnits = await api.post("/consume", {
+        userId: "alice",
+        requestId: "r1",
+        units: 11,
+      });
       expect(otherUnits.statusCode).toBe(409);
-      expect(otherUnits.json<ErrorBody>().error.code).toBe("idempotency_conflict");
+      expect(otherUnits.json<ErrorBody>().error.code).toBe(
+        "idempotency_conflict",
+      );
 
-      const otherUser = await api.post("/consume", { userId: "bob", requestId: "r1", units: 10 });
+      const otherUser = await api.post("/consume", {
+        userId: "bob",
+        requestId: "r1",
+        units: 10,
+      });
       expect(otherUser.statusCode).toBe(409);
 
       expect((await userUsage(api, "alice")).user.consumed.month).toBe(10);
@@ -329,8 +413,16 @@ describe("consume", () => {
       await addUser(a, "alice");
       await addUser(b, "alice");
 
-      const first = await consumeOk(a, { userId: "alice", requestId: "same-id", units: 10 });
-      const second = await consumeOk(b, { userId: "alice", requestId: "same-id", units: 10 });
+      const first = await consumeOk(a, {
+        userId: "alice",
+        requestId: "same-id",
+        units: 10,
+      });
+      const second = await consumeOk(b, {
+        userId: "alice",
+        requestId: "same-id",
+        units: 10,
+      });
       expect(first.replayed).toBe(false);
       expect(second.replayed).toBe(false);
     });
@@ -341,10 +433,16 @@ describe("consume", () => {
   describe("plan changes", () => {
     it("applies a raised limit to new requests and preserves earlier history", async () => {
       const api = await newAccount();
-      const strict = await addPlan(api, "Strict", "user", [{ kind: "max_per_request", limit: 5 }]);
+      const strict = await addPlan(api, "Strict", "user", [
+        { kind: "max_per_request", limit: 5 },
+      ]);
       await addUser(api, "alice", strict.id);
 
-      const before = await consumeOk(api, { userId: "alice", requestId: "r1", units: 10 });
+      const before = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r1",
+        units: 10,
+      });
       expect(before.accepted).toBe(false);
       expect(before.reason?.primary.limit).toBe(5);
 
@@ -354,14 +452,20 @@ describe("consume", () => {
       });
       expect(updated.statusCode).toBe(200);
 
-      const after = await consumeOk(api, { userId: "alice", requestId: "r2", units: 10 });
+      const after = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r2",
+        units: 10,
+      });
       expect(after.accepted).toBe(true);
 
       const entries = (await history(api)).requests;
-      expect(entries.map((entry) => [entry.requestId, entry.accepted])).toEqual([
-        ["r2", true],
-        ["r1", false],
-      ]);
+      expect(entries.map((entry) => [entry.requestId, entry.accepted])).toEqual(
+        [
+          ["r2", true],
+          ["r1", false],
+        ],
+      );
       expect(entries[1]?.reason?.primary.limit).toBe(5);
     });
 
@@ -370,14 +474,21 @@ describe("consume", () => {
       await addUser(api, "alice");
       await consumeOk(api, { userId: "alice", requestId: "r1", units: 20 });
 
-      expect((await api.put("/users/alice/plan", { planId: PREMIUM_PLAN_ID })).statusCode).toBe(200);
+      expect(
+        (await api.put("/users/alice/plan", { planId: PREMIUM_PLAN_ID }))
+          .statusCode,
+      ).toBe(200);
 
       const usage = await userUsage(api, "alice");
       expect(usage.user.plan.name).toBe("Premium");
       expect(usage.user.consumed.month).toBe(20);
       expect(usage.user.remaining?.monthlyAllowance).toBe(9_980);
 
-      const next = await consumeOk(api, { userId: "alice", requestId: "r2", units: 100 });
+      const next = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r2",
+        units: 100,
+      });
       expect(next.accepted).toBe(true);
       expect(next.remaining.user.monthlyAllowance).toBe(9_880);
     });
@@ -399,7 +510,11 @@ describe("consume", () => {
         ],
       });
 
-      const blocked = await consumeOk(api, { userId: "alice", requestId: "r2", units: 1 });
+      const blocked = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r2",
+        units: 1,
+      });
       expect(blocked.accepted).toBe(false);
       expect(blocked.reason?.primary).toEqual({
         level: "user",
@@ -420,7 +535,11 @@ describe("consume", () => {
           { kind: "max_per_request", limit: 100 },
         ],
       });
-      const recovered = await consumeOk(api, { userId: "alice", requestId: "r3", units: 1 });
+      const recovered = await consumeOk(api, {
+        userId: "alice",
+        requestId: "r3",
+        units: 1,
+      });
       expect(recovered.accepted).toBe(true);
       expect(recovered.remaining.user.monthlyAllowance).toBe(119);
     });
@@ -434,7 +553,10 @@ describe("consume", () => {
       ["negative units", { userId: "alice", requestId: "r", units: -5 }],
       ["fractional units", { userId: "alice", requestId: "r", units: 1.5 }],
       ["units as a string", { userId: "alice", requestId: "r", units: "10" }],
-      ["units above the maximum", { userId: "alice", requestId: "r", units: 1_000_000_001 }],
+      [
+        "units above the maximum",
+        { userId: "alice", requestId: "r", units: 1_000_000_001 },
+      ],
       ["missing units", { userId: "alice", requestId: "r" }],
       ["empty request id", { userId: "alice", requestId: "", units: 1 }],
       ["missing user id", { requestId: "r", units: 1 }],
@@ -449,7 +571,11 @@ describe("consume", () => {
 
     it("returns 404 for an unknown user and records nothing", async () => {
       const api = await newAccount();
-      const response = await api.post("/consume", { userId: "ghost", requestId: "r1", units: 1 });
+      const response = await api.post("/consume", {
+        userId: "ghost",
+        requestId: "r1",
+        units: 1,
+      });
       expect(response.statusCode).toBe(404);
       expect(response.json<ErrorBody>().error.code).toBe("user_not_found");
       expect((await history(api)).requests).toHaveLength(0);
@@ -457,16 +583,25 @@ describe("consume", () => {
 
     it("requires a valid API key on every new route", async () => {
       const payload = { userId: "alice", requestId: "r1", units: 1 };
-      const missing = await t.app.inject({ method: "POST", url: "/consume", payload });
+      const missing = await t.app.inject({
+        method: "POST",
+        url: "/consume",
+        payload,
+      });
       expect(missing.statusCode).toBe(401);
       expect(missing.json<ErrorBody>().error.code).toBe("missing_api_key");
 
-      const invalid = await asAccount(t.app, "mk_00000000_notarealkey").post("/consume", payload);
+      const invalid = await asAccount(t.app, "mk_00000000_notarealkey").post(
+        "/consume",
+        payload,
+      );
       expect(invalid.statusCode).toBe(401);
       expect(invalid.json<ErrorBody>().error.code).toBe("invalid_api_key");
 
       for (const url of ["/usage", "/history", "/users/alice/usage"]) {
-        expect((await t.app.inject({ method: "GET", url })).statusCode).toBe(401);
+        expect((await t.app.inject({ method: "GET", url })).statusCode).toBe(
+          401,
+        );
       }
     });
   });
@@ -478,7 +613,11 @@ describe("consume", () => {
       await addUser(a, "alice");
       await consumeOk(a, { userId: "alice", requestId: "r1", units: 10 });
 
-      const crossAccount = await b.post("/consume", { userId: "alice", requestId: "x1", units: 5 });
+      const crossAccount = await b.post("/consume", {
+        userId: "alice",
+        requestId: "x1",
+        units: 5,
+      });
       expect(crossAccount.statusCode).toBe(404);
       expect(crossAccount.json<ErrorBody>().error.code).toBe("user_not_found");
 
@@ -540,7 +679,8 @@ describe("consume", () => {
       await consumeOk(api, { userId: "bob", requestId: "r4", units: 10 });
       await consumeOk(api, { userId: "alice", requestId: "r5", units: 10 });
     };
-    const ids = (page: HistoryBody): string[] => page.requests.map((entry) => entry.requestId);
+    const ids = (page: HistoryBody): string[] =>
+      page.requests.map((entry) => entry.requestId);
 
     it("pages newest first with a cursor and no gaps or duplicates", async () => {
       const api = await newAccount();
@@ -550,10 +690,16 @@ describe("consume", () => {
       expect(ids(page1)).toEqual(["r5", "r4"]);
       expect(page1.nextCursor).not.toBeNull();
 
-      const page2 = await history(api, `?limit=2&cursor=${page1.nextCursor ?? ""}`);
+      const page2 = await history(
+        api,
+        `?limit=2&cursor=${page1.nextCursor ?? ""}`,
+      );
       expect(ids(page2)).toEqual(["r3", "r2"]);
 
-      const page3 = await history(api, `?limit=2&cursor=${page2.nextCursor ?? ""}`);
+      const page3 = await history(
+        api,
+        `?limit=2&cursor=${page2.nextCursor ?? ""}`,
+      );
       expect(ids(page3)).toEqual(["r1"]);
       expect(page3.nextCursor).toBeNull();
     });

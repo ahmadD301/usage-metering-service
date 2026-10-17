@@ -7,7 +7,11 @@ import {
 } from "../domain/index.js";
 import { withTransaction } from "../db/client.js";
 import { loadEffectivePlans, userExists } from "../db/effective-plans.js";
-import { findRequest, insertRequest, type StoredRequest } from "../db/requests.js";
+import {
+  findRequest,
+  insertRequest,
+  type StoredRequest,
+} from "../db/requests.js";
 import {
   ensureAccountMonthRow,
   lockAccountMonth,
@@ -25,12 +29,12 @@ type ConsumeResult = Result<ConsumeResponse, ConsumeError>;
 // a different payload is a conflict.
 const replayOrConflict = (
   existing: StoredRequest,
-  fingerprint: string
+  fingerprint: string,
 ): ConsumeResult => {
   if (existing.fingerprint === fingerprint) {
     return ok({
       ...existing.decision,
-      replayed: true
+      replayed: true,
     });
   }
 
@@ -56,9 +60,15 @@ const decideInTransaction = async (
   }
 
   // 3. Read the plans and usage as they are right now.
-  const plans = await loadEffectivePlans(client, command.accountId, command.userId);
+  const plans = await loadEffectivePlans(
+    client,
+    command.accountId,
+    command.userId,
+  );
   if (plans === null) {
-    throw new Error("The user disappeared during a consume call, which should be impossible");
+    throw new Error(
+      "The user disappeared during a consume call, which should be impossible",
+    );
   }
   const usage = await readUsage(client, {
     accountId: command.accountId,
@@ -113,11 +123,18 @@ const decideInTransaction = async (
   return ok({ ...stored, replayed: false });
 };
 
-export const consume = async (pool: pg.Pool, command: ConsumeCommand): Promise<ConsumeResult> => {
+export const consume = async (
+  pool: pg.Pool,
+  command: ConsumeCommand,
+): Promise<ConsumeResult> => {
   const fingerprint = fingerprintOf(command.userId, command.units);
 
   // no locks: retries and unknown users are answered cheaply.
-  const existing = await findRequest(pool, command.accountId, command.requestId);
+  const existing = await findRequest(
+    pool,
+    command.accountId,
+    command.requestId,
+  );
   if (existing !== null) {
     return replayOrConflict(existing, fingerprint);
   }
@@ -127,5 +144,7 @@ export const consume = async (pool: pg.Pool, command: ConsumeCommand): Promise<C
 
   // one transaction. It uses its own client, never the pool, so a pile of waiting
   // transactions cannot starve themselves of connections.
-  return withTransaction(pool, (client) => decideInTransaction(client, command, fingerprint));
+  return withTransaction(pool, (client) =>
+    decideInTransaction(client, command, fingerprint),
+  );
 };

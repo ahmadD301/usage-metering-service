@@ -24,7 +24,9 @@ describe("addUsage", () => {
 
 describe("remainingSummary", () => {
   it("reports remaining per rule kind and null for kinds the plan lacks", () => {
-    expect(remainingSummary(userPlan, { monthUsed: 990, dayUsed: 990 })).toEqual({
+    expect(
+      remainingSummary(userPlan, { monthUsed: 990, dayUsed: 990 }),
+    ).toEqual({
       monthlyAllowance: 10,
       dailyAllowance: null,
       maxPerRequest: 20,
@@ -32,6 +34,9 @@ describe("remainingSummary", () => {
   });
 
   it("never goes below zero when the allowance is under existing usage", () => {
-    expect(remainingSummary(userPlan, { monthUsed: 5_000, dayUsed: 0 }).monthlyAllowance).toBe(0);
+    expect(
+      remainingSummary(userPlan, { monthUsed: 5_000, dayUsed: 0 })
+        .monthlyAllowance,
+    ).toBe(0);
   });
 });

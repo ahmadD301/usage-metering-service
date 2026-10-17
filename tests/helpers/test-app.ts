@@ -27,7 +27,9 @@ export type TestAppOptions = {
   readonly clock?: () => Date;
 };
 
-export const createTestApp = async (options: TestAppOptions = {}): Promise<TestApp> => {
+export const createTestApp = async (
+  options: TestAppOptions = {},
+): Promise<TestApp> => {
   const db = await createTestDb();
   const app = buildApp({
     pool: db.pool,
@@ -46,7 +48,9 @@ export const createTestApp = async (options: TestAppOptions = {}): Promise<TestA
 };
 
 // A clock tests can move: `set("2026-11-01T00:00:00.000Z")`.
-export const mutableClock = (startIso: string): { now: () => Date; set: (iso: string) => void } => {
+export const mutableClock = (
+  startIso: string,
+): { now: () => Date; set: (iso: string) => void } => {
   let current = new Date(startIso);
   return {
     now: () => current,
@@ -78,9 +82,20 @@ export const createAccount = async (
 
 // Small client bound to one API key.
 export const asAccount = (app: FastifyInstance, apiKey: string) => ({
-  get: (url: string) => app.inject({ method: "GET", url, headers: { "x-api-key": apiKey } }),
+  get: (url: string) =>
+    app.inject({ method: "GET", url, headers: { "x-api-key": apiKey } }),
   post: (url: string, payload: object) =>
-    app.inject({ method: "POST", url, headers: { "x-api-key": apiKey }, payload }),
+    app.inject({
+      method: "POST",
+      url,
+      headers: { "x-api-key": apiKey },
+      payload,
+    }),
   put: (url: string, payload: object) =>
-    app.inject({ method: "PUT", url, headers: { "x-api-key": apiKey }, payload }),
+    app.inject({
+      method: "PUT",
+      url,
+      headers: { "x-api-key": apiKey },
+      payload,
+    }),
 });
