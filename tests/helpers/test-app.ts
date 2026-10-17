@@ -22,9 +22,18 @@ export type TestApp = {
   readonly close: () => Promise<void>;
 };
 
-export const createTestApp = async (): Promise<TestApp> => {
+export type TestAppOptions = {
+  // Fake "now" for the service. Defaults to the system clock.
+  readonly clock?: () => Date;
+};
+
+export const createTestApp = async (options: TestAppOptions = {}): Promise<TestApp> => {
   const db = await createTestDb();
-  const app = buildApp({ pool: db.pool, adminToken: ADMIN_TOKEN });
+  const app = buildApp({
+    pool: db.pool,
+    adminToken: ADMIN_TOKEN,
+    ...(options.clock === undefined ? {} : { clock: options.clock }),
+  });
   await app.ready();
   return {
     app,
@@ -32,6 +41,17 @@ export const createTestApp = async (): Promise<TestApp> => {
     close: async () => {
       await app.close();
       await db.close();
+    },
+  };
+};
+
+// A clock tests can move: `set("2026-11-01T00:00:00.000Z")`.
+export const mutableClock = (startIso: string): { now: () => Date; set: (iso: string) => void } => {
+  let current = new Date(startIso);
+  return {
+    now: () => current,
+    set: (iso) => {
+      current = new Date(iso);
     },
   };
 };
@@ -56,22 +76,11 @@ export const createAccount = async (
   return { id: body.account.id, apiKey: body.apiKey };
 };
 
-//Small client bound to one API key.
+// Small client bound to one API key.
 export const asAccount = (app: FastifyInstance, apiKey: string) => ({
-  get: (url: string) =>
-    app.inject({ method: "GET", url, headers: { "x-api-key": apiKey } }),
+  get: (url: string) => app.inject({ method: "GET", url, headers: { "x-api-key": apiKey } }),
   post: (url: string, payload: object) =>
-    app.inject({
-      method: "POST",
-      url,
-      headers: { "x-api-key": apiKey },
-      payload,
-    }),
+    app.inject({ method: "POST", url, headers: { "x-api-key": apiKey }, payload }),
   put: (url: string, payload: object) =>
-    app.inject({
-      method: "PUT",
-      url,
-      headers: { "x-api-key": apiKey },
-      payload,
-    }),
+    app.inject({ method: "PUT", url, headers: { "x-api-key": apiKey }, payload }),
 });
