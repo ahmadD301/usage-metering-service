@@ -3,6 +3,7 @@ import type { AppDeps } from "./deps.js";
 import { errorHandler, httpErrors, notFoundHandler } from "./errors.js";
 import { accountRoutes } from "./routes/account.js";
 import { adminRoutes } from "./routes/admin.js";
+import { consumeRoutes } from "./routes/consume.js";
 
 export const buildApp = (deps: AppDeps): FastifyInstance => {
   const app = Fastify({ logger: deps.logger ?? false });
@@ -24,6 +25,7 @@ export const buildApp = (deps: AppDeps): FastifyInstance => {
 
   void app.register(adminRoutes(deps));
   void app.register(accountRoutes(deps));
+  void app.register(consumeRoutes(deps));
 
   return app;
 };
