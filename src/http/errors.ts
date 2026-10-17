@@ -16,6 +16,7 @@ export type ErrorCode =
   | "plan_read_only"
   | "user_already_exists"
   | "plan_name_taken"
+  | "idempotency_conflict"
   | "not_ready"
   | "internal_error";
 
@@ -82,6 +83,12 @@ export const httpErrors = {
       409,
       "plan_name_taken",
       "This account already has a plan with that name",
+    ),
+  idempotencyConflict: (): AppError =>
+    new AppError(
+      409,
+      "idempotency_conflict",
+      "This requestId was already used with a different userId or units. Use a new requestId.",
     ),
   notReady: (): AppError =>
     new AppError(503, "not_ready", "The database is not reachable"),
