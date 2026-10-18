@@ -16,7 +16,9 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/src/index.js",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "demo": "tsx client/cli.ts",
+    "client:dev": "tsx watch client/index.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

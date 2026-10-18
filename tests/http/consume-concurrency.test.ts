@@ -43,7 +43,7 @@ describe("consume under concurrency", () => {
     return response.json<{ plan: PlanBody }>().plan.id;
   };
 
-  // An account with custom limits and users u0..u{n-1}, all on the same user plan.
+  /** An account with custom limits and users u0..u{n-1}, all on the same user plan. */
   const setup = async (
     name: string,
     limits: {
@@ -101,7 +101,6 @@ describe("consume under concurrency", () => {
   it(
     "never overspends a shared account allowance, even across accounts running at once",
     async () => {
-      // Setup two accounts with different monthly allowances.
       const a = await setup("Conc A", {
         accountMonthly: 100,
         userMonthly: 10_000,
@@ -125,7 +124,8 @@ describe("consume under concurrency", () => {
       for (const rejected of [...resultsA, ...resultsB].filter(
         (result) => !result.accepted,
       )) {
-        expect(rejected.reason?.primary).toEqual({
+        // FIX: the violation carries more fields (limit, used, ...), so match only what we assert.
+        expect(rejected.reason?.primary).toMatchObject({
           level: "account",
           rule: "monthly_allowance",
         });
@@ -150,7 +150,6 @@ describe("consume under concurrency", () => {
   it(
     "never overspends one user's allowance when the same user is hit concurrently",
     async () => {
-      // Setup an account with a user that has a limited monthly allowance.
       const hot = await setup("Hot user", {
         accountMonthly: 10_000,
         userMonthly: 100,
@@ -162,7 +161,8 @@ describe("consume under concurrency", () => {
 
       expect(results.filter((result) => result.accepted)).toHaveLength(5);
       for (const rejected of results.filter((result) => !result.accepted)) {
-        expect(rejected.reason?.primary).toEqual({
+        // FIX: toMatchObject instead of toEqual, same reason as above.
+        expect(rejected.reason?.primary).toMatchObject({
           level: "user",
           rule: "monthly_allowance",
         });
@@ -180,7 +180,6 @@ describe("consume under concurrency", () => {
   it(
     "counts a request once when the same request id arrives many times at once",
     async () => {
-      // Setup an account with a user that has a limited monthly allowance.
       const dup = await setup("Dup", {
         accountMonthly: 1_000,
         userMonthly: 1_000,
@@ -194,12 +193,15 @@ describe("consume under concurrency", () => {
         Array.from({ length: 25 }, () => sameCall),
       );
 
-      expect(results.filter((result) => !result.replayed)).toHaveLength(1);
-      expect(results.filter((result) => result.replayed)).toHaveLength(24);
-      const distinct = new Set(
-        results.map((result) => JSON.stringify({ ...result, replayed: false })),
-      );
-      expect(distinct.size).toBe(1);
+      const originals = results.filter((result) => !result.replayed);
+      const replays = results.filter((result) => result.replayed);
+      expect(originals).toHaveLength(1);
+      expect(replays).toHaveLength(24);
+
+      for (const replay of replays) {
+        expect(replay).toEqual({ ...originals[0], replayed: true });
+      }
+
       expect(await readTotals(t.db.pool, dup.accountId, MONTH)).toEqual({
         accountTotal: 10,
         usersTotal: 10,

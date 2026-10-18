@@ -19,5 +19,58 @@ services:
       timeout: 5s
       retries: 15
 
+  service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-metering}:${POSTGRES_PASSWORD:-metering_dev_password}@postgres:5432/${POSTGRES_DB:-metering}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin-token-change-me}
+      PORT: "3000"
+    ports:
+      - "${SERVICE_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/ready').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    environment:
+      METERING_URL: http://service:3000
+      # Demo only: lets the example create a fresh account to show the scenario.
+      # A real application would just be given its API key.
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin-token-change-me}
+      PORT: "8080"
+    ports:
+      - "${CLIENT_PORT:-8080}:8080"
+    depends_on:
+      service:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8080/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
 volumes:
   postgres-data:
