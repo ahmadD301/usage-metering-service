@@ -5,14 +5,23 @@ import { buildApp } from "./http/app.js";
 
 const main = async (): Promise<void> => {
   const config = loadConfig(process.env);
-  const pool = createPool(config.databaseUrl);
+  const pool = createPool(config.databaseUrl, { max: config.dbPoolMax });
 
-  const { appliedMigrations } = await bootstrapDatabase(
+  const { appliedMigrations } = await bootstrapDatabase(pool, config.migrationsDir);
+  const app = buildApp({
     pool,
-    config.migrationsDir,
+    adminToken: config.adminToken,
+    logger: true,
+    accountConcurrency: config.accountConcurrency,
+  });
+  app.log.info(
+    {
+      appliedMigrations,
+      dbPoolMax: config.dbPoolMax,
+      accountConcurrency: config.accountConcurrency,
+    },
+    "database ready",
   );
-  const app = buildApp({ pool, adminToken: config.adminToken, logger: true });
-  app.log.info({ appliedMigrations }, "database ready");
 
   const shutdown = async (): Promise<void> => {
     await app.close();
@@ -29,7 +38,6 @@ const main = async (): Promise<void> => {
 
   await app.listen({ port: config.port, host: config.host });
 };
-
 main().catch((error: unknown) => {
   console.error(error);
   process.exitCode = 1;

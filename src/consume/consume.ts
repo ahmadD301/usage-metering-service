@@ -6,19 +6,13 @@ import {
   type EvaluationContext,
 } from "../domain/index.js";
 import { withTransaction } from "../db/client.js";
-import { loadEffectivePlans, userExists } from "../db/effective-plans.js";
 import {
-  findRequest,
-  insertRequest,
-  type StoredRequest,
-} from "../db/requests.js";
-import {
-  ensureAccountMonthRow,
-  lockAccountMonth,
-  readUsage,
-  recordAccountUsage,
-  recordUserUsage,
-} from "../db/usage.js";
+  loadConsumeState,
+  lockAccountForConsume,
+  precheck,
+  recordOutcome,
+} from "../db/consume-state.js";
+import type { StoredRequest } from "../db/requests.js";
 import { err, ok, type Result } from "../shared/result.js";
 import { buildStoredDecision } from "./decision.js";
 import { fingerprintOf } from "./fingerprint.js";
@@ -26,20 +20,23 @@ import type { ConsumeCommand, ConsumeError, ConsumeResponse } from "./types.js";
 
 type ConsumeResult = Result<ConsumeResponse, ConsumeError>;
 
-// a different payload is a conflict.
+/**
+ * Runs a task while holding a slot for `key`. Used to limit how many consume calls for one
+ * account are in flight inside this process. It is an optimization only: correctness comes
+ * from the database lock, so it stays correct with several service instances.
+ */
+export type Exclusive = <T>(key: string, task: () => Promise<T>) => Promise<T>;
+
+const unrestricted: Exclusive = (_key, task) => task();
+
+/** Same request id: same payload replays the stored decision, a different payload is a conflict. */
 const replayOrConflict = (
   existing: StoredRequest,
   fingerprint: string,
-): ConsumeResult => {
-  if (existing.fingerprint === fingerprint) {
-    return ok({
-      ...existing.decision,
-      replayed: true,
-    });
-  }
-
-  return err("idempotency_conflict");
-};
+): ConsumeResult =>
+  existing.fingerprint === fingerprint
+    ? ok({ ...existing.decision, replayed: true })
+    : err("idempotency_conflict");
 
 const decideInTransaction = async (
   client: pg.PoolClient,
@@ -50,101 +47,86 @@ const decideInTransaction = async (
   const dayStart = dayPeriodKey(command.now);
 
   // 1. Take the account's lock. Everything below runs alone for this account.
-  await ensureAccountMonthRow(client, command.accountId, monthStart);
-  await lockAccountMonth(client, command.accountId, monthStart);
+  await lockAccountForConsume(client, command.accountId, monthStart);
 
-  // 2. A duplicate may have committed while we waited for the lock.
-  const raced = await findRequest(client, command.accountId, command.requestId);
-  if (raced !== null) {
-    return replayOrConflict(raced, fingerprint);
-  }
-
-  // 3. Read the plans and usage as they are right now.
-  const plans = await loadEffectivePlans(
-    client,
-    command.accountId,
-    command.userId,
-  );
-  if (plans === null) {
+  // 2. One statement, started AFTER the lock, so it sees what the previous holder committed:
+  //    an earlier decision for this request id, both plans and the four counters.
+  const state = await loadConsumeState(client, {
+    accountId: command.accountId,
+    userId: command.userId,
+    requestId: command.requestId,
+    monthStart,
+    dayStart,
+  });
+  if (state === null) {
     throw new Error(
       "The user disappeared during a consume call, which should be impossible",
     );
   }
-  const usage = await readUsage(client, {
-    accountId: command.accountId,
-    userId: plans.userInternalId,
-    monthStart,
-    dayStart,
-  });
+  if (state.existing !== null) {
+    return replayOrConflict(state.existing, fingerprint);
+  }
 
-  // 4. Decide. This is the pure engine: no I/O, no clock.
+  // 3. Decide. This is the pure engine: no I/O, no clock.
   const context: EvaluationContext = {
     requested: command.units,
-    account: { plan: plans.accountPlan, usage: usage.account },
-    user: { plan: plans.userPlan, usage: usage.user },
+    account: { plan: state.accountPlan, usage: state.usage.account },
+    user: { plan: state.userPlan, usage: state.usage.user },
   };
-  const decision = evaluate(context);
   const stored = buildStoredDecision({
     requestId: command.requestId,
     userId: command.userId,
     units: command.units,
     now: command.now,
-    decision,
+    decision: evaluate(context),
     account: context.account,
     user: context.user,
   });
 
-  // 5. Record the outcome (accepted or rejected), and count the units only if accepted.
-  await insertRequest(client, {
+  // 4. Record the outcome (accepted or rejected); counters change only if accepted.
+  await recordOutcome(client, {
     accountId: command.accountId,
-    userInternalId: plans.userInternalId,
+    userInternalId: state.userInternalId,
     requestId: command.requestId,
     units: command.units,
     fingerprint,
-    outcome: stored.accepted ? "accepted" : "rejected",
     decision: stored,
-    periodMonth: monthStart,
+    monthStart,
+    dayStart,
   });
-  if (decision.kind === "accepted") {
-    await recordAccountUsage(client, {
-      accountId: command.accountId,
-      monthStart,
-      dayStart,
-      units: decision.units,
-    });
-    await recordUserUsage(client, {
-      userId: plans.userInternalId,
-      monthStart,
-      dayStart,
-      units: decision.units,
-    });
-  }
 
   return ok({ ...stored, replayed: false });
 };
 
-export const consume = async (
+const consumeNow = async (
   pool: pg.Pool,
   command: ConsumeCommand,
 ): Promise<ConsumeResult> => {
   const fingerprint = fingerprintOf(command.userId, command.units);
 
-  // no locks: retries and unknown users are answered cheaply.
-  const existing = await findRequest(
-    pool,
-    command.accountId,
-    command.requestId,
-  );
-  if (existing !== null) {
-    return replayOrConflict(existing, fingerprint);
+  // Phase 1, no locks: retries and unknown users are answered with one cheap query.
+  const first = await precheck(pool, {
+    accountId: command.accountId,
+    userId: command.userId,
+    requestId: command.requestId,
+  });
+  if (first.existing !== null) {
+    return replayOrConflict(first.existing, fingerprint);
   }
-  if (!(await userExists(pool, command.accountId, command.userId))) {
+  if (!first.userExists) {
     return err("user_not_found");
   }
 
-  // one transaction. It uses its own client, never the pool, so a pile of waiting
+  // Phase 2, one transaction. It uses its own client, never the pool, so a pile of waiting
   // transactions cannot starve themselves of connections.
   return withTransaction(pool, (client) =>
     decideInTransaction(client, command, fingerprint),
   );
 };
+
+export const consume = (
+  pool: pg.Pool,
+  command: ConsumeCommand,
+  exclusive: Exclusive = unrestricted,
+): Promise<ConsumeResult> =>
+  exclusive(command.accountId, () => consumeNow(pool, command));
