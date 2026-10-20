@@ -9,6 +9,7 @@ export default tseslint.config(
       "coverage/**",
       "src/**/*.js",
       "client/**/*.js",
+      "load-tests/**/*.js",
     ],
   },
   eslint.configs.recommended,
