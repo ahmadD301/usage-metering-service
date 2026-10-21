@@ -12,7 +12,9 @@ export type KeyedLimiter = {
 
 export const createKeyedLimiter = (limit: number): KeyedLimiter => {
   if (!Number.isInteger(limit) || limit < 1) {
-    throw new RangeError(`The limit must be a whole number of at least 1, got ${String(limit)}`);
+    throw new RangeError(
+      `The limit must be a whole number of at least 1, got ${String(limit)}`,
+    );
   }
   const slots = new Map<string, Slot>();
 

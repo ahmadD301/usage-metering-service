@@ -29,7 +29,12 @@ const scenarios = {
   },
 };
 if (HOT_VUS > 0) {
-  scenarios.hot = { executor: "constant-vus", exec: "hot", vus: HOT_VUS, duration: DURATION };
+  scenarios.hot = {
+    executor: "constant-vus",
+    exec: "hot",
+    vus: HOT_VUS,
+    duration: DURATION,
+  };
 }
 
 export const options = {
@@ -70,13 +75,20 @@ export function setup() {
 
 export function hot(data) {
   const requestId = `${data.runId}-h-${__VU}-${__ITER}`;
-  expectAccepted(consume(data.hot, pick(data.hot.users), requestId, 1, { workload: "hot" }));
+  expectAccepted(
+    consume(data.hot, pick(data.hot.users), requestId, 1, { workload: "hot" }),
+  );
 }
 
 export function quiet(data) {
   const account = pick(data.quiet);
   const requestId = `${data.runId}-q-${__VU}-${__ITER}`;
-  expectAccepted(consume(account, pick(account.users), requestId, 1, { workload: "quiet" }));
+  expectAccepted(
+    consume(account, pick(account.users), requestId, 1, { workload: "quiet" }),
+  );
 }
 
-export const handleSummary = makeHandleSummary("noisy-neighbor", ["hot", "quiet"]);
+export const handleSummary = makeHandleSummary("noisy-neighbor", [
+  "hot",
+  "quiet",
+]);

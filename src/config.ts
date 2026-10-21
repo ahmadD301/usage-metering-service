@@ -29,7 +29,9 @@ export type Config = {
   readonly accountConcurrency: number;
 };
 
-export const loadConfig = (env: Readonly<Record<string, string | undefined>>): Config => {
+export const loadConfig = (
+  env: Readonly<Record<string, string | undefined>>,
+): Config => {
   const parsed = envSchema.safeParse(env);
   if (!parsed.success) {
     const problems = parsed.error.issues
@@ -43,7 +45,8 @@ export const loadConfig = (env: Readonly<Record<string, string | undefined>>): C
     adminToken: values.ADMIN_TOKEN,
     port: values.PORT,
     host: values.HOST,
-    migrationsDir: values.MIGRATIONS_DIR ?? path.resolve(process.cwd(), "migrations"),
+    migrationsDir:
+      values.MIGRATIONS_DIR ?? path.resolve(process.cwd(), "migrations"),
     dbPoolMax: values.DB_POOL_MAX,
     accountConcurrency: values.ACCOUNT_CONCURRENCY,
   };

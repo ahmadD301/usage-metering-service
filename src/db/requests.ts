@@ -6,63 +6,15 @@ export type StoredRequest = {
   readonly decision: StoredDecision;
 };
 
-export const findRequest = async (
-  db: Queryable,
-  accountId: string,
-  requestId: string,
-): Promise<StoredRequest | null> => {
-  const result = await db.query<StoredRequest>(
-    "SELECT fingerprint, decision FROM requests WHERE account_id = $1 AND request_id = $2",
-    [accountId, requestId],
-  );
-  const [row] = result.rows;
-  return row ?? null;
-};
-
-export type NewRequest = {
-  readonly accountId: string;
-  readonly userInternalId: string;
-  readonly requestId: string;
-  readonly units: number;
-  readonly fingerprint: string;
-  readonly outcome: "accepted" | "rejected";
-  readonly decision: StoredDecision;
-  // "YYYY-MM-01"
-  readonly periodMonth: string;
-};
-
-//created_at is the real insertion time. Inserts for one account happen while holding that
-//account's lock, so this order matches the order decisions were made in.
-export const insertRequest = async (
-  db: Queryable,
-  request: NewRequest,
-): Promise<void> => {
-  await db.query(
-    `INSERT INTO requests
-       (account_id, user_id, request_id, units, fingerprint, outcome, decision, period_month, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::date, clock_timestamp())`,
-    [
-      request.accountId,
-      request.userInternalId,
-      request.requestId,
-      request.units,
-      request.fingerprint,
-      request.outcome,
-      JSON.stringify(request.decision),
-      request.periodMonth,
-    ],
-  );
-};
-
 export type HistoryCursor = {
-  // Postgres text form of the timestamp, so microseconds survive the round trip.
+  /** Postgres text form of the timestamp, so microseconds survive the round trip. */
   readonly createdAt: string;
   readonly id: string;
 };
 
 export type HistoryFilter = {
   readonly accountId: string;
-  // "YYYY-MM-01" or null for all months.
+  /** "YYYY-MM-01" or null for all months. */
   readonly month: string | null;
   readonly userExternalId: string | null;
   readonly outcome: "accepted" | "rejected" | null;
@@ -70,10 +22,7 @@ export type HistoryFilter = {
   readonly after: HistoryCursor | null;
 };
 
-export type HistoryEntry = {
-  readonly decision: StoredDecision;
-  readonly createdAt: Date;
-};
+export type HistoryEntry = { readonly decision: StoredDecision; readonly createdAt: Date };
 
 export type HistoryPage = {
   readonly entries: readonly HistoryEntry[];
@@ -87,10 +36,7 @@ type HistoryRow = {
   created_at_exact: string;
 };
 
-export const listHistory = async (
-  db: Queryable,
-  filter: HistoryFilter,
-): Promise<HistoryPage> => {
+export const listHistory = async (db: Queryable, filter: HistoryFilter): Promise<HistoryPage> => {
   const values: unknown[] = [filter.accountId];
   const bind = (value: unknown): string => {
     values.push(value);
@@ -127,10 +73,7 @@ export const listHistory = async (
   const rows = result.rows.slice(0, filter.limit);
   const last = rows.at(-1);
   return {
-    entries: rows.map((row) => ({
-      decision: row.decision,
-      createdAt: row.created_at,
-    })),
+    entries: rows.map((row) => ({ decision: row.decision, createdAt: row.created_at })),
     nextCursor:
       result.rows.length > filter.limit && last !== undefined
         ? { createdAt: last.created_at_exact, id: last.id }

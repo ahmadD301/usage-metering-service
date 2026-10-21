@@ -35,16 +35,13 @@ const EFFECTIVE_PLANS_SQL = `
   WHERE u.account_id = $1 AND u.external_id = $2
 `;
 
-// The account plan and user plan that apply to this user right now, or null if no such user.
+/** The account plan and user plan that apply to this user right now, or null if no such user. */
 export const loadEffectivePlans = async (
   db: Queryable,
   accountId: string,
   externalId: string,
 ): Promise<EffectivePlans | null> => {
-  const result = await db.query<Row>(EFFECTIVE_PLANS_SQL, [
-    accountId,
-    externalId,
-  ]);
+  const result = await db.query<Row>(EFFECTIVE_PLANS_SQL, [accountId, externalId]);
   const [row] = result.rows;
   if (row === undefined) {
     return null;
@@ -64,16 +61,4 @@ export const loadEffectivePlans = async (
       rules: row.user_rules,
     },
   };
-};
-
-export const userExists = async (
-  db: Queryable,
-  accountId: string,
-  externalId: string,
-): Promise<boolean> => {
-  const result = await db.query(
-    "SELECT 1 FROM users WHERE account_id = $1 AND external_id = $2",
-    [accountId, externalId],
-  );
-  return (result.rowCount ?? 0) > 0;
 };

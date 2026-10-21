@@ -7,7 +7,10 @@ const main = async (): Promise<void> => {
   const config = loadConfig(process.env);
   const pool = createPool(config.databaseUrl, { max: config.dbPoolMax });
 
-  const { appliedMigrations } = await bootstrapDatabase(pool, config.migrationsDir);
+  const { appliedMigrations } = await bootstrapDatabase(
+    pool,
+    config.migrationsDir,
+  );
   const app = buildApp({
     pool,
     adminToken: config.adminToken,

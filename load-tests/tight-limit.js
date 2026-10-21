@@ -18,7 +18,9 @@ const ACCOUNT_MONTHLY = intFromEnv("ACCOUNT_MONTHLY", 5000);
 const DURATION = __ENV.DURATION || "20s";
 
 export const options = {
-  scenarios: { default: { executor: "constant-vus", vus: VUS, duration: DURATION } },
+  scenarios: {
+    default: { executor: "constant-vus", vus: VUS, duration: DURATION },
+  },
   summaryTrendStats: TREND_STATS,
   // Rejections are expected here, so only overspending fails the run.
   thresholds: reportOnlyThresholds({
@@ -41,7 +43,9 @@ export function setup() {
 
 export default function (data) {
   const requestId = `${data.runId}-${__VU}-${__ITER}`;
-  const decision = decisionOf(consume(data.account, pick(data.account.users), requestId, 1));
+  const decision = decisionOf(
+    consume(data.account, pick(data.account.users), requestId, 1),
+  );
   if (decision !== null && decision.accepted) {
     acceptedUnits.add(decision.units);
   }
