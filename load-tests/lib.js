@@ -18,7 +18,8 @@ export const intFromEnv = (name, fallback) => {
   return raw === undefined || raw === "" ? fallback : Number(raw);
 };
 
-export const newRunId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+export const newRunId = () =>
+  Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
 export const pick = (list) => list[Math.floor(Math.random() * list.length)];
 
@@ -44,7 +45,12 @@ function mustSucceed(response, what) {
  */
 export function setupAccount(options) {
   const created = mustSucceed(
-    send("POST", "/accounts", { name: options.label }, { "X-Admin-Token": ADMIN_TOKEN }),
+    send(
+      "POST",
+      "/accounts",
+      { name: options.label },
+      { "X-Admin-Token": ADMIN_TOKEN },
+    ),
     "create account",
   );
   const keyHeaders = { "X-API-Key": created.apiKey };
@@ -96,7 +102,10 @@ export function setupAccount(options) {
       "POST",
       `${BASE_URL}/users`,
       JSON.stringify({ externalId, planId: userPlan.plan.id }),
-      { headers: Object.assign({}, JSON_HEADERS, keyHeaders), tags: { name: "setup" } },
+      {
+        headers: Object.assign({}, JSON_HEADERS, keyHeaders),
+        tags: { name: "setup" },
+      },
     ]);
     http.batch(batch).forEach((response) => {
       if (response.status !== 201) {
@@ -105,7 +114,12 @@ export function setupAccount(options) {
     });
   }
 
-  return { id: created.account.id, apiKey: created.apiKey, label: options.label, users: userIds };
+  return {
+    id: created.account.id,
+    apiKey: created.apiKey,
+    label: options.label,
+    users: userIds,
+  };
 }
 
 // ---------- the request under test ----------
@@ -137,7 +151,9 @@ export function consumeEntry(account, userId, requestId, units, extraTags) {
 
 /** Checks for HTTP 200 and returns the parsed decision, or null if the call failed. */
 export function decisionOf(response) {
-  const ok = check(response, { "consume returned 200": (r) => r.status === 200 });
+  const ok = check(response, {
+    "consume returned 200": (r) => r.status === 200,
+  });
   return ok ? response.json() : null;
 }
 
@@ -157,7 +173,15 @@ export function expectAccepted(response) {
 
 // ---------- thresholds and summary ----------
 
-export const TREND_STATS = ["avg", "min", "med", "p(90)", "p(95)", "p(99)", "max"];
+export const TREND_STATS = [
+  "avg",
+  "min",
+  "med",
+  "p(90)",
+  "p(95)",
+  "p(99)",
+  "max",
+];
 
 /**
  * Real gates: no HTTP errors and no unexpected rejections. The `max>=0` / `count>=0` entries
@@ -172,12 +196,16 @@ export function reportOnlyThresholds(extra) {
     "http_reqs{name:consume}": ["count>=0"],
   };
   if (__ENV.P95_MS) {
-    thresholds["http_req_duration{name:consume}"] = ["max>=0", `p(95)<${__ENV.P95_MS}`];
+    thresholds["http_req_duration{name:consume}"] = [
+      "max>=0",
+      `p(95)<${__ENV.P95_MS}`,
+    ];
   }
   return Object.assign(thresholds, extra || {});
 }
 
-const round1 = (n) => (n === undefined || n === null ? null : Math.round(n * 10) / 10);
+const round1 = (n) =>
+  n === undefined || n === null ? null : Math.round(n * 10) / 10;
 
 const seconds = (text) => {
   const match = /^(\d+)(s|m)$/.exec(text || "");
@@ -228,7 +256,10 @@ export function summarize(data, scenario, workloads) {
   });
   const byWorkload = {};
   (workloads || []).forEach((workload) => {
-    byWorkload[workload] = latencyOf(data, `http_req_duration{workload:${workload}}`);
+    byWorkload[workload] = latencyOf(
+      data,
+      `http_req_duration{workload:${workload}}`,
+    );
   });
   const droppedIterations = valueOf(data, "dropped_iterations", "count");
   return {
@@ -237,7 +268,10 @@ export function summarize(data, scenario, workloads) {
     config,
     consume: {
       requests: count,
-      perSecond: count !== null && durationSeconds !== null ? round1(count / durationSeconds) : null,
+      perSecond:
+        count !== null && durationSeconds !== null
+          ? round1(count / durationSeconds)
+          : null,
       latencyMs: latencyOf(data, "http_req_duration{name:consume}"),
     },
     latencyMsByWorkload: byWorkload,
@@ -250,7 +284,8 @@ export function summarize(data, scenario, workloads) {
   };
 }
 
-const show = (value) => (value === null || value === undefined ? "n/a" : String(value));
+const show = (value) =>
+  value === null || value === undefined ? "n/a" : String(value);
 
 const latencyLine = (latency) =>
   latency === null
@@ -267,7 +302,9 @@ export function formatSummary(summary) {
     `latency (ms):  ${latencyLine(summary.consume.latencyMs)}`,
   ];
   Object.keys(summary.latencyMsByWorkload).forEach((workload) => {
-    lines.push(`  ${workload.padEnd(12)} ${latencyLine(summary.latencyMsByWorkload[workload])}`);
+    lines.push(
+      `  ${workload.padEnd(12)} ${latencyLine(summary.latencyMsByWorkload[workload])}`,
+    );
   });
   lines.push(
     `http failed:   ${show(summary.httpFailedRate)}   checks failed: ${show(summary.checksFailed)}`,
@@ -284,7 +321,11 @@ export function makeHandleSummary(scenario, workloads) {
     const summary = summarize(data, scenario, workloads);
     const resultsDir = __ENV.RESULTS_DIR || "/results";
     const output = { stdout: formatSummary(summary) };
-    output[`${resultsDir}/${summary.resultName}.json`] = JSON.stringify(summary, null, 2);
+    output[`${resultsDir}/${summary.resultName}.json`] = JSON.stringify(
+      summary,
+      null,
+      2,
+    );
     return output;
   };
 }

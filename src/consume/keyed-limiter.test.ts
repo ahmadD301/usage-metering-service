@@ -75,7 +75,9 @@ describe("createKeyedLimiter", () => {
   it("returns each task's own result", async () => {
     const limiter = createKeyedLimiter(3);
     const results = await Promise.all(
-      [1, 2, 3, 4, 5].map((n) => limiter.run("a", () => Promise.resolve(n * 10))),
+      [1, 2, 3, 4, 5].map((n) =>
+        limiter.run("a", () => Promise.resolve(n * 10)),
+      ),
     );
     expect(results).toEqual([10, 20, 30, 40, 50]);
   });

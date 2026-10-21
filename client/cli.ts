@@ -17,7 +17,7 @@ const main = async (): Promise<number> => {
     config.adminToken,
     `CLI demo ${new Date().toISOString()}`,
   );
-  if (!provisioned.ok) {
+  if (provisioned.type === "err") {
     console.error(
       `Could not create a demo account: ${describeClientError(provisioned.error)}`,
     );
@@ -25,7 +25,7 @@ const main = async (): Promise<number> => {
   }
   const client = createMeteringClient(http, provisioned.value.apiKey);
   const demo = await setupDemoAccount(client);
-  if (!demo.ok) {
+  if (demo.type === "err") {
     console.error(
       `Could not prepare the demo account: ${describeClientError(demo.error)}`,
     );
@@ -40,7 +40,7 @@ const main = async (): Promise<number> => {
   }
 
   const state = await readState(client);
-  if (state.ok) {
+  if (state.type === "ok") {
     console.log(
       `\nAccount (${state.value.accountPlan}): used ${String(state.value.accountConsumed)}`,
     );

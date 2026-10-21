@@ -1,14 +1,21 @@
 import type { FastifyPluginCallback } from "fastify";
 import { z } from "zod";
 import { consume } from "../../consume/consume.js";
-import { createKeyedLimiter, DEFAULT_ACCOUNT_CONCURRENCY } from "../../consume/keyed-limiter.js";
+import {
+  createKeyedLimiter,
+  DEFAULT_ACCOUNT_CONCURRENCY,
+} from "../../consume/keyed-limiter.js";
 import type { ConsumeError } from "../../consume/types.js";
 import { buildUsageView, periodFor } from "../../consume/usage-view.js";
 import { loadEffectivePlans } from "../../db/effective-plans.js";
 import { findPlanById } from "../../db/plans.js";
 import { listHistory } from "../../db/requests.js";
 import { readUsage } from "../../db/usage.js";
-import { MAX_UNITS_PER_REQUEST, parseUnits, type UnitsError } from "../../domain/index.js";
+import {
+  MAX_UNITS_PER_REQUEST,
+  parseUnits,
+  type UnitsError,
+} from "../../domain/index.js";
 import { assertNever } from "../../shared/assert-never.js";
 import { accountOf, requireApiKey } from "../auth.js";
 import { decodeCursor, encodeCursor } from "../cursor.js";
@@ -64,7 +71,9 @@ export const consumeRoutes =
     const clock = deps.clock ?? systemClock;
     // Limits how many consume calls per account are in flight in this process, so requests
     // waiting for a busy account's lock wait in memory instead of holding database connections.
-    const limiter = createKeyedLimiter(deps.accountConcurrency ?? DEFAULT_ACCOUNT_CONCURRENCY);
+    const limiter = createKeyedLimiter(
+      deps.accountConcurrency ?? DEFAULT_ACCOUNT_CONCURRENCY,
+    );
     scope.addHook("onRequest", requireApiKey(pool));
 
     // ---- Consume ----
@@ -74,7 +83,9 @@ export const consumeRoutes =
       const body = parseWith(consumeBody, request.body);
       const units = parseUnits(body.units);
       if (units.type !== "ok") {
-        throw httpErrors.validation([{ path: "units", message: unitsMessage(units.error) }]);
+        throw httpErrors.validation([
+          { path: "units", message: unitsMessage(units.error) },
+        ]);
       }
       const result = await consume(
         pool,
@@ -131,7 +142,10 @@ export const consumeRoutes =
         dayStart: period.dayStart,
       });
       return {
-        user: { userId: externalId, ...buildUsageView(period, found.userPlan, usage.user) },
+        user: {
+          userId: externalId,
+          ...buildUsageView(period, found.userPlan, usage.user),
+        },
         account: buildUsageView(period, found.accountPlan, usage.account),
       };
     });
@@ -141,9 +155,12 @@ export const consumeRoutes =
     scope.get("/history", async (request) => {
       const account = accountOf(request);
       const query = parseWith(historyQuery, request.query);
-      const after = query.cursor === undefined ? null : decodeCursor(query.cursor);
+      const after =
+        query.cursor === undefined ? null : decodeCursor(query.cursor);
       if (query.cursor !== undefined && after === null) {
-        throw httpErrors.validation([{ path: "cursor", message: "cursor is invalid" }]);
+        throw httpErrors.validation([
+          { path: "cursor", message: "cursor is invalid" },
+        ]);
       }
       const page = await listHistory(pool, {
         accountId: account.id,
@@ -154,8 +171,12 @@ export const consumeRoutes =
         after,
       });
       return {
-        requests: page.entries.map((entry) => ({ ...entry.decision, createdAt: entry.createdAt })),
-        nextCursor: page.nextCursor === null ? null : encodeCursor(page.nextCursor),
+        requests: page.entries.map((entry) => ({
+          ...entry.decision,
+          createdAt: entry.createdAt,
+        })),
+        nextCursor:
+          page.nextCursor === null ? null : encodeCursor(page.nextCursor),
       };
     });
 

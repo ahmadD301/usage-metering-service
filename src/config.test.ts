@@ -36,17 +36,25 @@ describe("loadConfig", () => {
   });
 
   it("fails fast on a missing database url", () => {
-    expect(() => loadConfig({ ADMIN_TOKEN: valid.ADMIN_TOKEN })).toThrow(/DATABASE_URL/);
+    expect(() => loadConfig({ ADMIN_TOKEN: valid.ADMIN_TOKEN })).toThrow(
+      /DATABASE_URL/,
+    );
   });
 
   it("rejects a short admin token and a bad port", () => {
-    expect(() => loadConfig({ ...valid, ADMIN_TOKEN: "short" })).toThrow(/ADMIN_TOKEN/);
+    expect(() => loadConfig({ ...valid, ADMIN_TOKEN: "short" })).toThrow(
+      /ADMIN_TOKEN/,
+    );
     expect(() => loadConfig({ ...valid, PORT: "99999" })).toThrow(/PORT/);
   });
 
   it("rejects pool and concurrency values that make no sense", () => {
-    expect(() => loadConfig({ ...valid, DB_POOL_MAX: "0" })).toThrow(/DB_POOL_MAX/);
-    expect(() => loadConfig({ ...valid, ACCOUNT_CONCURRENCY: "0" })).toThrow(/ACCOUNT_CONCURRENCY/);
+    expect(() => loadConfig({ ...valid, DB_POOL_MAX: "0" })).toThrow(
+      /DB_POOL_MAX/,
+    );
+    expect(() => loadConfig({ ...valid, ACCOUNT_CONCURRENCY: "0" })).toThrow(
+      /ACCOUNT_CONCURRENCY/,
+    );
     expect(() => loadConfig({ ...valid, ACCOUNT_CONCURRENCY: "1.5" })).toThrow(
       /ACCOUNT_CONCURRENCY/,
     );

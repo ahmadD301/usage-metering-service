@@ -36,7 +36,10 @@ export const findProblems = (
         `${label}: OVERSPENT: counter ${String(row.counter)} exceeds the allowance ${String(row.allowance)}`,
       );
     }
-    if (options.expectSaturated && (row.allowance === null || row.counter !== row.allowance)) {
+    if (
+      options.expectSaturated &&
+      (row.allowance === null || row.counter !== row.allowance)
+    ) {
       problems.push(
         `${label}: expected the allowance to be fully used, but the counter is ${String(row.counter)} ` +
           `and the allowance is ${row.allowance === null ? "unlimited" : String(row.allowance)}`,
@@ -105,7 +108,9 @@ const main = async (): Promise<number> => {
     const result = await pool.query<AccountTotals>(TOTALS_SQL, [prefix, since]);
     const rows = result.rows;
     if (rows.length === 0) {
-      console.error(`No accounts named "${prefix}*" found${since === null ? "" : ` since ${since}`}.`);
+      console.error(
+        `No accounts named "${prefix}*" found${since === null ? "" : ` since ${since}`}.`,
+      );
       return 2;
     }
     console.table(rows);
@@ -124,14 +129,19 @@ const main = async (): Promise<number> => {
       }
       return 1;
     }
-    console.log("Consistency check passed: counters, user totals and accepted requests all agree.");
+    console.log(
+      "Consistency check passed: counters, user totals and accepted requests all agree.",
+    );
     return 0;
   } finally {
     await pool.end();
   }
 };
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (
+  process.argv[1] !== undefined &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
   main()
     .then((code) => {
       process.exitCode = code;

@@ -16,7 +16,9 @@ const USERS = intFromEnv("USERS", 50);
 const DURATION = __ENV.DURATION || "30s";
 
 export const options = {
-  scenarios: { default: { executor: "constant-vus", vus: VUS, duration: DURATION } },
+  scenarios: {
+    default: { executor: "constant-vus", vus: VUS, duration: DURATION },
+  },
   summaryTrendStats: TREND_STATS,
   thresholds: reportOnlyThresholds(),
 };
