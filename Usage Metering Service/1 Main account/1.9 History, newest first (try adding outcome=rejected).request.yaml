@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/history?limit=5"
+method: GET
+headers:
+  X-API-Key: "{{apiKey}}"
+queryParams:
+  limit: "5"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200', function () { pm.response.to.have.status(200); });
+      const j = pm.response.json();
+      pm.test('two entries: the rejection first, then the accepted request', function () {
+        pm.expect(j.requests.length).to.eql(2);
+        pm.expect(j.requests[0].requestId).to.eql('pm-' + pm.collectionVariables.get('runId') + '-2');
+        pm.expect(j.requests[0].accepted).to.eql(false);
+        pm.expect(j.requests[1].accepted).to.eql(true);
+      });
+    language: text/javascript
+order: 9000

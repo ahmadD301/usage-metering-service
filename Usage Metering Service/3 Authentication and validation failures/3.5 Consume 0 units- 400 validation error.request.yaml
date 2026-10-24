@@ -1,0 +1,17 @@
+$kind: http-request
+name: "3.5 Consume 0 units: 400 validation error"
+url: "{{baseUrl}}/consume"
+method: POST
+headers:
+  X-API-Key: "{{apiKey}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"userId":"alice","requestId":"pm-{{runId}}-bad","units":0}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('400', function () { pm.response.to.have.status(400); });
+      pm.test('validation_error', function () { pm.expect(pm.response.json().error.code).to.eql('validation_error'); });
+    language: text/javascript
+order: 5000

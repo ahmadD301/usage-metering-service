@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{baseUrl}}/users"
+method: POST
+headers:
+  X-API-Key: "{{apiKey}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"externalId":"alice"}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', function () { pm.response.to.have.status(201); });
+      pm.test('alice is on Basic', function () { pm.expect(pm.response.json().user.plan.name).to.eql('Basic'); });
+    language: text/javascript
+order: 2000

@@ -1,0 +1,11 @@
+$kind: collection
+description: Run with the Collection Runner, in order. Requires the stack to be running on baseUrl.
+variables:
+  baseUrl: http://localhost:3000
+  adminToken: dev-admin-token-change-me
+  basicPlanId: 00000000-0000-4000-8000-000000000003
+  premiumPlanId: 00000000-0000-4000-8000-000000000004
+  runId: ""
+  apiKey: ""
+  apiKey2: ""
+  planId2: ""

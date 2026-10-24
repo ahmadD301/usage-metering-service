@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{baseUrl}}/users/alice/plan"
+method: PUT
+headers:
+  X-API-Key: "{{apiKey}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"planId":"{{basicPlanId}}"}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200', function () { pm.response.to.have.status(200); });
+      pm.test('alice is on Basic again', function () { pm.expect(pm.response.json().user.plan.name).to.eql('Basic'); });
+    language: text/javascript
+order: 14000

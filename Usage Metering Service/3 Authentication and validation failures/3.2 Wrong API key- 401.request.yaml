@@ -1,0 +1,13 @@
+$kind: http-request
+name: "3.2 Wrong API key: 401"
+url: "{{baseUrl}}/account"
+method: GET
+headers:
+  X-API-Key: not-a-real-key
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('401', function () { pm.response.to.have.status(401); });
+      pm.test('invalid_api_key', function () { pm.expect(pm.response.json().error.code).to.eql('invalid_api_key'); });
+    language: text/javascript
+order: 2000

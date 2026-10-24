@@ -2,7 +2,10 @@ import type { UsageSnapshot } from "../domain/index.js";
 import { emptyUsage } from "../domain/usage.js";
 import type { Queryable } from "./client.js";
 
-export type UsagePair = { readonly account: UsageSnapshot; readonly user: UsageSnapshot };
+export type UsagePair = {
+  readonly account: UsageSnapshot;
+  readonly user: UsageSnapshot;
+};
 
 type UsageRow = {
   owner: "account" | "user";
@@ -16,7 +19,9 @@ const applyRow = (pair: UsagePair, row: UsageRow): UsagePair => {
     row.period_kind === "month"
       ? { ...current, monthUsed: row.units_used }
       : { ...current, dayUsed: row.units_used };
-  return row.owner === "account" ? { ...pair, account: next } : { ...pair, user: next };
+  return row.owner === "account"
+    ? { ...pair, account: next }
+    : { ...pair, user: next };
 };
 
 /** Folds counter rows into usage snapshots. A missing row means zero. Pure. */
@@ -47,7 +52,10 @@ const USAGE_SQL = `
       OR (period_kind = 'day' AND $3::date IS NOT NULL AND period_start = $3::date))
 `;
 
-export const readUsage = async (db: Queryable, query: UsageQuery): Promise<UsagePair> => {
+export const readUsage = async (
+  db: Queryable,
+  query: UsageQuery,
+): Promise<UsagePair> => {
   const result = await db.query<UsageRow>(USAGE_SQL, [
     query.accountId,
     query.monthStart,

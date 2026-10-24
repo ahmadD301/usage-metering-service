@@ -1,0 +1,7 @@
+# Use this workspace to collaborate
+workspace:
+  id: 1d583165-da9c-4052-8d78-9a49f7c374ff
+
+localResources:
+  collections:
+    - ../Usage Metering Service

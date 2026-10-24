@@ -1,0 +1,16 @@
+$kind: http-request
+name: "3.3 Create an account without the admin token: 401"
+url: "{{baseUrl}}/accounts"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"name":"no token"}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('401', function () { pm.response.to.have.status(401); });
+      pm.test('admin_unauthorized', function () { pm.expect(pm.response.json().error.code).to.eql('admin_unauthorized'); });
+    language: text/javascript
+order: 3000

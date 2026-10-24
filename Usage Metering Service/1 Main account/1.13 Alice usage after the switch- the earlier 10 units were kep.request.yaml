@@ -1,0 +1,13 @@
+$kind: http-request
+name: "1.13 Alice usage after the switch: the earlier 10 units were kept"
+url: "{{baseUrl}}/users/alice/usage"
+method: GET
+headers:
+  X-API-Key: "{{apiKey}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200', function () { pm.response.to.have.status(200); });
+      pm.test('35 consumed in total', function () { pm.expect(pm.response.json().user.consumed.month).to.eql(35); });
+    language: text/javascript
+order: 13000

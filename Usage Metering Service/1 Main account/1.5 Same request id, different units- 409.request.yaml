@@ -1,0 +1,17 @@
+$kind: http-request
+name: "1.5 Same request id, different units: 409"
+url: "{{baseUrl}}/consume"
+method: POST
+headers:
+  X-API-Key: "{{apiKey}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"userId":"alice","requestId":"pm-{{runId}}-1","units":11}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('409', function () { pm.response.to.have.status(409); });
+      pm.test('idempotency_conflict', function () { pm.expect(pm.response.json().error.code).to.eql('idempotency_conflict'); });
+    language: text/javascript
+order: 5000

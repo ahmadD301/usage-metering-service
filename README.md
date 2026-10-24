@@ -19,10 +19,10 @@ cp .env.example .env
 docker compose up --build
 ```
 
-| What | URL |
-|---|---|
+| What                                  | URL                   |
+| ------------------------------------- | --------------------- |
 | Example application (open this first) | http://localhost:8080 |
-| Metering service API | http://localhost:3000 |
+| Metering service API                  | http://localhost:3000 |
 
 Open the example application and click **Run guided scenario**. It creates a fresh demo account and
 walks through eight steps, showing each decision and the remaining allowances (see
@@ -57,23 +57,23 @@ the user's usage and to the account's shared usage.
 
 ## Accounts, users and plans
 
-| Concept | Meaning |
-|---|---|
-| Account | A calling application. Has an account plan (limits shared by all its users) and an API key. |
-| User | A user of that application, registered under one account. Has a user plan (individual limits). |
-| Plan | A named set of rules. Scope is `account` or `user`. Predefined plans are read-only and shared by everyone. Custom plans belong to one account and can be edited. |
+| Concept | Meaning                                                                                                                                                          |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Account | A calling application. Has an account plan (limits shared by all its users) and an API key.                                                                      |
+| User    | A user of that application, registered under one account. Has a user plan (individual limits).                                                                   |
+| Plan    | A named set of rules. Scope is `account` or `user`. Predefined plans are read-only and shared by everyone. Custom plans belong to one account and can be edited. |
 
 The account plan and the user plan always apply **together**. Giving a user a larger allowance does not
 increase the account's shared allowance.
 
 ### Predefined plans (created automatically at startup)
 
-| Plan | Scope | Monthly allowance | Max per request |
-|---|---|---|---|
-| Starter | account | 10,000 | 100 |
-| Pro | account | 100,000 | 1,000 |
-| Basic | user | 1,000 | 20 |
-| Premium | user | 10,000 | 200 |
+| Plan    | Scope   | Monthly allowance | Max per request |
+| ------- | ------- | ----------------- | --------------- |
+| Starter | account | 10,000            | 100             |
+| Pro     | account | 100,000           | 1,000           |
+| Basic   | user    | 1,000             | 20              |
+| Premium | user    | 10,000            | 200             |
 
 New accounts get Starter and new users get Basic unless a plan is given.
 
@@ -93,8 +93,8 @@ effect for every account or user using it.
      -d '{"name":"Acme"}'
 ```
 
-   The response contains `"apiKey": "mk_1a2b3c4d_..."`. **It is shown once and never stored.** Only its
-   SHA-256 hash is saved.
+The response contains `"apiKey": "mk_1a2b3c4d_..."`. **It is shown once and never stored.** Only its
+SHA-256 hash is saved.
 
 2. Send the key on every other request in the `X-API-Key` header. The key identifies the calling account
    and grants access only to that account's data. A missing or invalid key returns `401`. Users, plans and
@@ -106,24 +106,24 @@ Every error has one shape: `{ "error": { "code": "...", "message": "...", "detai
 
 ### Endpoints
 
-| Method and path | Purpose | Success | Errors |
-|---|---|---|---|
-| `GET /health`, `GET /ready` | liveness, database readiness (no key) | 200 | 503 |
-| `POST /accounts` (`X-Admin-Token`) | create account, returns API key once | 201 | 400, 401, 404, 422 |
-| `GET /account` | the account and its plan | 200 | 401 |
-| `PUT /account/plan` | assign an account plan `{ planId }` | 200 | 404, 422 |
-| `POST /users` | register a user `{ externalId, planId? }` | 201 | 404, 409, 422 |
-| `GET /users?limit=&after=` | list users (cursor pagination) | 200 | 400 |
-| `GET /users/:externalId` | a user and plan | 200 | 404 |
-| `PUT /users/:externalId/plan` | switch a user's plan `{ planId }` | 200 | 404, 422 |
-| `GET /users/:externalId/effective-plans` | the account plan and user plan that apply together | 200 | 404 |
-| `GET /plans?scope=`, `GET /plans/:planId` | predefined plans plus your custom plans | 200 | 404 |
-| `POST /plans` | create a custom plan `{ name, scope, rules }` | 201 | 400, 409 |
-| `PUT /plans/:planId` | replace a custom plan's name and rules | 200 | 403, 404, 409 |
-| `POST /consume` | consume units `{ userId, requestId, units }` | 200 | 400, 404, 409 |
-| `GET /usage?month=YYYY-MM` | account consumed and remaining | 200 | 400 |
-| `GET /users/:externalId/usage?month=YYYY-MM` | user and account consumed and remaining | 200 | 404 |
-| `GET /history?month=&userId=&outcome=&limit=&cursor=` | request outcomes, newest first | 200 | 400 |
+| Method and path                                       | Purpose                                            | Success | Errors             |
+| ----------------------------------------------------- | -------------------------------------------------- | ------- | ------------------ |
+| `GET /health`, `GET /ready`                           | liveness, database readiness (no key)              | 200     | 503                |
+| `POST /accounts` (`X-Admin-Token`)                    | create account, returns API key once               | 201     | 400, 401, 404, 422 |
+| `GET /account`                                        | the account and its plan                           | 200     | 401                |
+| `PUT /account/plan`                                   | assign an account plan `{ planId }`                | 200     | 404, 422           |
+| `POST /users`                                         | register a user `{ externalId, planId? }`          | 201     | 404, 409, 422      |
+| `GET /users?limit=&after=`                            | list users (cursor pagination)                     | 200     | 400                |
+| `GET /users/:externalId`                              | a user and plan                                    | 200     | 404                |
+| `PUT /users/:externalId/plan`                         | switch a user's plan `{ planId }`                  | 200     | 404, 422           |
+| `GET /users/:externalId/effective-plans`              | the account plan and user plan that apply together | 200     | 404                |
+| `GET /plans?scope=`, `GET /plans/:planId`             | predefined plans plus your custom plans            | 200     | 404                |
+| `POST /plans`                                         | create a custom plan `{ name, scope, rules }`      | 201     | 400, 409           |
+| `PUT /plans/:planId`                                  | replace a custom plan's name and rules             | 200     | 403, 404, 409      |
+| `POST /consume`                                       | consume units `{ userId, requestId, units }`       | 200     | 400, 404, 409      |
+| `GET /usage?month=YYYY-MM`                            | account consumed and remaining                     | 200     | 400                |
+| `GET /users/:externalId/usage?month=YYYY-MM`          | user and account consumed and remaining            | 200     | 404                |
+| `GET /history?month=&userId=&outcome=&limit=&cursor=` | request outcomes, newest first                     | 200     | 400                |
 
 In `/consume`, `userId` is the same identifier you registered as `externalId`.
 
@@ -161,12 +161,27 @@ An accepted response (HTTP 200):
 
 ```json
 {
-  "requestId": "order-1001", "userId": "alice", "units": 10,
-  "accepted": true, "reason": null, "replayed": false,
-  "plans": { "account": { "id": "...", "name": "Starter" }, "user": { "id": "...", "name": "Basic" } },
+  "requestId": "order-1001",
+  "userId": "alice",
+  "units": 10,
+  "accepted": true,
+  "reason": null,
+  "replayed": false,
+  "plans": {
+    "account": { "id": "...", "name": "Starter" },
+    "user": { "id": "...", "name": "Basic" }
+  },
   "remaining": {
-    "account": { "monthlyAllowance": 9990, "dailyAllowance": null, "maxPerRequest": 100 },
-    "user": { "monthlyAllowance": 990, "dailyAllowance": null, "maxPerRequest": 20 }
+    "account": {
+      "monthlyAllowance": 9990,
+      "dailyAllowance": null,
+      "maxPerRequest": 100
+    },
+    "user": {
+      "monthlyAllowance": 990,
+      "dailyAllowance": null,
+      "maxPerRequest": 20
+    }
   },
   "decidedAt": "2026-10-16T10:00:00.000Z"
 }
@@ -179,8 +194,24 @@ request and `reason.violations` lists every rule that did:
 {
   "accepted": false,
   "reason": {
-    "primary": { "level": "user", "rule": "max_per_request", "limit": 20, "used": null, "remaining": 20, "requested": 25 },
-    "violations": [ { "level": "user", "rule": "max_per_request", "limit": 20, "used": null, "remaining": 20, "requested": 25 } ]
+    "primary": {
+      "level": "user",
+      "rule": "max_per_request",
+      "limit": 20,
+      "used": null,
+      "remaining": 20,
+      "requested": 25
+    },
+    "violations": [
+      {
+        "level": "user",
+        "rule": "max_per_request",
+        "limit": 20,
+        "used": null,
+        "remaining": 20,
+        "requested": 25
+      }
+    ]
   }
 }
 ```
@@ -192,11 +223,11 @@ has no rule of that kind.
 
 Both plans must allow the request, and the full amount must fit. Three rule kinds exist at both levels:
 
-| Rule | Meaning |
-|---|---|
-| `monthly_allowance` | Total units in a UTC calendar month |
-| `max_per_request` | Largest amount in one request |
-| `daily_allowance` | Total units in a UTC day (the extra rule, see below) |
+| Rule                | Meaning                                              |
+| ------------------- | ---------------------------------------------------- |
+| `monthly_allowance` | Total units in a UTC calendar month                  |
+| `max_per_request`   | Largest amount in one request                        |
+| `daily_allowance`   | Total units in a UTC day (the extra rule, see below) |
 
 A plan may have any subset (at most one rule per kind); a missing rule means no limit.
 
@@ -233,12 +264,12 @@ It is demonstrated in `tests/http/consume.test.ts` ("enforces a daily allowance"
 
 `requestId` is the idempotency key. Choose it per logical action (a UUID is fine) and **reuse it when retrying**.
 
-| Situation | Result |
-|---|---|
-| First time a `requestId` is seen | Decided and recorded; `replayed: false` |
-| Same `requestId`, same user and units | The stored decision is returned again, `replayed: true`, nothing is counted twice |
-| Same `requestId`, different user or units | `409 idempotency_conflict`, nothing changes |
-| Many identical requests at once | Exactly one is decided; the others replay it |
+| Situation                                 | Result                                                                            |
+| ----------------------------------------- | --------------------------------------------------------------------------------- |
+| First time a `requestId` is seen          | Decided and recorded; `replayed: false`                                           |
+| Same `requestId`, same user and units     | The stored decision is returned again, `replayed: true`, nothing is counted twice |
+| Same `requestId`, different user or units | `409 idempotency_conflict`, nothing changes                                       |
+| Many identical requests at once           | Exactly one is decided; the others replay it                                      |
 
 - A retry replays the **original decision, even a rejection, even if the plan changed since**. To be evaluated again under a new
   plan, send a new `requestId`.
@@ -272,32 +303,32 @@ processing is simulated (one unit per page). Its code never changes when plans c
 
 Where the brief left behavior open, these choices were made and applied consistently.
 
-| # | Topic | Decision |
-|---|---|---|
-| A1 | Account creation | `POST /accounts` needs the `ADMIN_TOKEN` provisioning secret (no roles; out of scope) |
-| A2 | API keys | `mk_<8 hex>_<43 chars>`, 256 bits random, only the SHA-256 hash is stored, shown once. No rotation endpoint |
-| A3 | User identity | The caller's own `externalId`, unique per account; internal ids never leave the service |
-| A4 | Unknown or foreign user | `404 user_not_found`, identical for both, so nothing leaks across accounts |
-| A5 | Request id | Chosen by the caller, unique per account |
-| A6 | Retry | Same payload replays the original stored decision, including rejections |
-| A7 | Same id, different payload | `409 idempotency_conflict` |
-| A8 | Rejection status | HTTP 200 with `accepted: false`; 4xx and 5xx are reserved for errors |
-| A9 | Several violations | All listed; `primary` is chosen by a fixed order (per-request, daily, monthly; account before user) |
-| A10 | Number limits | Units: whole numbers from 1 to 1,000,000,000. Limits: whole numbers from 0 to 10^12 |
-| A11 | Missing rule | No limit. A plan can have any subset of rules |
-| A12 | Defaults | Starter for new accounts, Basic for new users |
-| A13 | Month and day | UTC. One timestamp per request decides the period. The month is stored on the request row |
-| A14 | Allowance below usage | Remaining shows 0; requests are rejected at that level until the allowance exceeds usage |
-| A15 | Plan switch or edit | Applies to requests that read the plan afterwards; usage is kept |
-| A16 | Deletion | Not supported for accounts, users or plans (preserves history) |
-| A17 | Editing a plan in use | Allowed for custom plans; predefined plans are never editable |
-| A18 | Plan scope | Each plan is `account` or `user`; assigning the wrong scope is `422`. Plan names are unique per account |
-| A19 | Extra rule | `daily_allowance` at both levels |
-| A20 | Retention | All request history and counters are kept forever |
-| A21 | Pagination | Keyset (cursor): history by time, users by `externalId` |
-| A22 | Errors | One JSON shape everywhere |
-| A23 | Zero or negative units | `400 validation_error` |
-| A24 | Account usage | A counter row per account and period, updated in the same transaction as the user's counters; tests check it equals the sum of its users' counters |
+| #   | Topic                      | Decision                                                                                                                                           |
+| --- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A1  | Account creation           | `POST /accounts` needs the `ADMIN_TOKEN` provisioning secret (no roles; out of scope)                                                              |
+| A2  | API keys                   | `mk_<8 hex>_<43 chars>`, 256 bits random, only the SHA-256 hash is stored, shown once. No rotation endpoint                                        |
+| A3  | User identity              | The caller's own `externalId`, unique per account; internal ids never leave the service                                                            |
+| A4  | Unknown or foreign user    | `404 user_not_found`, identical for both, so nothing leaks across accounts                                                                         |
+| A5  | Request id                 | Chosen by the caller, unique per account                                                                                                           |
+| A6  | Retry                      | Same payload replays the original stored decision, including rejections                                                                            |
+| A7  | Same id, different payload | `409 idempotency_conflict`                                                                                                                         |
+| A8  | Rejection status           | HTTP 200 with `accepted: false`; 4xx and 5xx are reserved for errors                                                                               |
+| A9  | Several violations         | All listed; `primary` is chosen by a fixed order (per-request, daily, monthly; account before user)                                                |
+| A10 | Number limits              | Units: whole numbers from 1 to 1,000,000,000. Limits: whole numbers from 0 to 10^12                                                                |
+| A11 | Missing rule               | No limit. A plan can have any subset of rules                                                                                                      |
+| A12 | Defaults                   | Starter for new accounts, Basic for new users                                                                                                      |
+| A13 | Month and day              | UTC. One timestamp per request decides the period. The month is stored on the request row                                                          |
+| A14 | Allowance below usage      | Remaining shows 0; requests are rejected at that level until the allowance exceeds usage                                                           |
+| A15 | Plan switch or edit        | Applies to requests that read the plan afterwards; usage is kept                                                                                   |
+| A16 | Deletion                   | Not supported for accounts, users or plans (preserves history)                                                                                     |
+| A17 | Editing a plan in use      | Allowed for custom plans; predefined plans are never editable                                                                                      |
+| A18 | Plan scope                 | Each plan is `account` or `user`; assigning the wrong scope is `422`. Plan names are unique per account                                            |
+| A19 | Extra rule                 | `daily_allowance` at both levels                                                                                                                   |
+| A20 | Retention                  | All request history and counters are kept forever                                                                                                  |
+| A21 | Pagination                 | Keyset (cursor): history by time, users by `externalId`                                                                                            |
+| A22 | Errors                     | One JSON shape everywhere                                                                                                                          |
+| A23 | Zero or negative units     | `400 validation_error`                                                                                                                             |
+| A24 | Account usage              | A counter row per account and period, updated in the same transaction as the user's counters; tests check it equals the sum of its users' counters |
 
 ## Design decisions
 
@@ -329,17 +360,17 @@ each other.
 
 What is covered:
 
-| Area | Where |
-|---|---|
-| Rules engine: the brief's examples, ordering, boundaries, properties (determinism, monotonic, accepted iff headroom) | `src/domain/*.test.ts` |
-| API key validation, admin protection, key stored only as a hash | `tests/http/auth.test.ts`, `accounts.test.ts` |
-| Account isolation (users, plans, usage, history, consume) | `tests/http/isolation.test.ts`, `consume.test.ts` |
-| Both plans enforced, daily rule, month and day rollover | `tests/http/consume.test.ts` |
-| Retries and conflicts, including 25 identical concurrent requests counted once | `tests/http/consume.test.ts`, `consume-concurrency.test.ts` |
-| Concurrency: no overspend of shared or user allowance, totals agree | `tests/http/consume-concurrency.test.ts` |
-| Plan changes: raise, switch, lower below usage, history preserved | `tests/http/consume.test.ts` |
-| Schema constraints, migrations, seed idempotency | `tests/db/*.test.ts` |
-| Client retries, timeouts, typed errors, plus the whole scenario against the real service | `tests/client/*.test.ts`, `tests/e2e/demo.test.ts` |
+| Area                                                                                                                 | Where                                                       |
+| -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Rules engine: the brief's examples, ordering, boundaries, properties (determinism, monotonic, accepted iff headroom) | `src/domain/*.test.ts`                                      |
+| API key validation, admin protection, key stored only as a hash                                                      | `tests/http/auth.test.ts`, `accounts.test.ts`               |
+| Account isolation (users, plans, usage, history, consume)                                                            | `tests/http/isolation.test.ts`, `consume.test.ts`           |
+| Both plans enforced, daily rule, month and day rollover                                                              | `tests/http/consume.test.ts`                                |
+| Retries and conflicts, including 25 identical concurrent requests counted once                                       | `tests/http/consume.test.ts`, `consume-concurrency.test.ts` |
+| Concurrency: no overspend of shared or user allowance, totals agree                                                  | `tests/http/consume-concurrency.test.ts`                    |
+| Plan changes: raise, switch, lower below usage, history preserved                                                    | `tests/http/consume.test.ts`                                |
+| Schema constraints, migrations, seed idempotency                                                                     | `tests/db/*.test.ts`                                        |
+| Client retries, timeouts, typed errors, plus the whole scenario against the real service                             | `tests/client/*.test.ts`, `tests/e2e/demo.test.ts`          |
 
 ## Performance
 
@@ -355,16 +386,16 @@ Method, results, bottleneck analysis and what changed are in [docs/performance.m
 
 ## Configuration
 
-| Variable | Used by | Default | Meaning |
-|---|---|---|---|
-| `DATABASE_URL` | service | (required) | PostgreSQL connection string |
-| `ADMIN_TOKEN` | service, demo client | compose: `dev-admin-token-change-me` | Secret for creating accounts (16+ characters). Change it outside local use |
-| `PORT`, `HOST` | service, client | 3000 / 8080, 0.0.0.0 | Listen address |
-| `MIGRATIONS_DIR` | service | `./migrations` | Folder of SQL migrations |
-| `DB_POOL_MAX` | service | 10 | Maximum database connections |
-| `ACCOUNT_CONCURRENCY` | service | 2 | Maximum in-flight consume calls per account in one process |
-| `METERING_URL`, `REQUEST_TIMEOUT_MS`, `MAX_RETRIES` | client | service url, 5000, 3 | Example client settings |
-| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, `SERVICE_PORT`, `CLIENT_PORT` | compose | see `.env.example` | Compose settings |
+| Variable                                                                                            | Used by              | Default                              | Meaning                                                                    |
+| --------------------------------------------------------------------------------------------------- | -------------------- | ------------------------------------ | -------------------------------------------------------------------------- |
+| `DATABASE_URL`                                                                                      | service              | (required)                           | PostgreSQL connection string                                               |
+| `ADMIN_TOKEN`                                                                                       | service, demo client | compose: `dev-admin-token-change-me` | Secret for creating accounts (16+ characters). Change it outside local use |
+| `PORT`, `HOST`                                                                                      | service, client      | 3000 / 8080, 0.0.0.0                 | Listen address                                                             |
+| `MIGRATIONS_DIR`                                                                                    | service              | `./migrations`                       | Folder of SQL migrations                                                   |
+| `DB_POOL_MAX`                                                                                       | service              | 10                                   | Maximum database connections                                               |
+| `ACCOUNT_CONCURRENCY`                                                                               | service              | 2                                    | Maximum in-flight consume calls per account in one process                 |
+| `METERING_URL`, `REQUEST_TIMEOUT_MS`, `MAX_RETRIES`                                                 | client               | service url, 5000, 3                 | Example client settings                                                    |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, `SERVICE_PORT`, `CLIENT_PORT` | compose              | see `.env.example`                   | Compose settings                                                           |
 
 ## Project layout
 

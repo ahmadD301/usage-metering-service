@@ -22,7 +22,10 @@ export type HistoryFilter = {
   readonly after: HistoryCursor | null;
 };
 
-export type HistoryEntry = { readonly decision: StoredDecision; readonly createdAt: Date };
+export type HistoryEntry = {
+  readonly decision: StoredDecision;
+  readonly createdAt: Date;
+};
 
 export type HistoryPage = {
   readonly entries: readonly HistoryEntry[];
@@ -36,7 +39,10 @@ type HistoryRow = {
   created_at_exact: string;
 };
 
-export const listHistory = async (db: Queryable, filter: HistoryFilter): Promise<HistoryPage> => {
+export const listHistory = async (
+  db: Queryable,
+  filter: HistoryFilter,
+): Promise<HistoryPage> => {
   const values: unknown[] = [filter.accountId];
   const bind = (value: unknown): string => {
     values.push(value);
@@ -73,7 +79,10 @@ export const listHistory = async (db: Queryable, filter: HistoryFilter): Promise
   const rows = result.rows.slice(0, filter.limit);
   const last = rows.at(-1);
   return {
-    entries: rows.map((row) => ({ decision: row.decision, createdAt: row.created_at })),
+    entries: rows.map((row) => ({
+      decision: row.decision,
+      createdAt: row.created_at,
+    })),
     nextCursor:
       result.rows.length > filter.limit && last !== undefined
         ? { createdAt: last.created_at_exact, id: last.id }

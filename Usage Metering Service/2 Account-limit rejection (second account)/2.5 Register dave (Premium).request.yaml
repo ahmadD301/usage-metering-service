@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/users"
+method: POST
+headers:
+  X-API-Key: "{{apiKey2}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"externalId":"dave","planId":"{{premiumPlanId}}"}'
+scripts:
+  - type: afterResponse
+    code: pm.test('201 Created', function () { pm.response.to.have.status(201); });
+    language: text/javascript
+order: 5000

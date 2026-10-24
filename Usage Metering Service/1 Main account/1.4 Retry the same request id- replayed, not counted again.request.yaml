@@ -1,0 +1,19 @@
+$kind: http-request
+name: "1.4 Retry the same request id: replayed, not counted again"
+url: "{{baseUrl}}/consume"
+method: POST
+headers:
+  X-API-Key: "{{apiKey}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"userId":"alice","requestId":"pm-{{runId}}-1","units":10}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200', function () { pm.response.to.have.status(200); });
+      const j = pm.response.json();
+      pm.test('accepted and replayed', function () { pm.expect(j.accepted).to.eql(true); pm.expect(j.replayed).to.eql(true); });
+      pm.test('same numbers as the first answer', function () { pm.expect(j.remaining.user.monthlyAllowance).to.eql(990); });
+    language: text/javascript
+order: 4000

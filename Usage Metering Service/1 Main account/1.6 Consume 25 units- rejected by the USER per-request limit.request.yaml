@@ -1,0 +1,19 @@
+$kind: http-request
+name: "1.6 Consume 25 units: rejected by the USER per-request limit"
+url: "{{baseUrl}}/consume"
+method: POST
+headers:
+  X-API-Key: "{{apiKey}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"userId":"alice","requestId":"pm-{{runId}}-2","units":25}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 (a rejection is a normal answer)', function () { pm.response.to.have.status(200); });
+      const j = pm.response.json();
+      pm.test('rejected', function () { pm.expect(j.accepted).to.eql(false); });
+      pm.test('blocked by the user per-request limit of 20', function () { pm.expect(j.reason.primary.level).to.eql('user'); pm.expect(j.reason.primary.rule).to.eql('max_per_request'); pm.expect(j.reason.primary.limit).to.eql(20); });
+    language: text/javascript
+order: 6000

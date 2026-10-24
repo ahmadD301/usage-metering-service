@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{baseUrl}}/accounts"
+method: POST
+headers:
+  X-Admin-Token: "{{adminToken}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"name":"Postman account {{runId}}"}'
+scripts:
+  - type: beforeRequest
+    code: pm.collectionVariables.set('runId', Date.now().toString());
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', function () { pm.response.to.have.status(201); });
+      const j = pm.response.json();
+      pm.test('API key has the expected format', function () { pm.expect(j.apiKey).to.match(/^mk_[0-9a-f]{8}_[A-Za-z0-9_-]{43}$/); });
+      pm.test('new accounts start on Starter', function () { pm.expect(j.account.plan.name).to.eql('Starter'); });
+      pm.collectionVariables.set('apiKey', j.apiKey);
+    language: text/javascript
+order: 1000

@@ -1,0 +1,14 @@
+$kind: http-request
+name: "1.15 Alice usage on Basic: still 35 used, 965 left (a switch never resets usage)"
+url: "{{baseUrl}}/users/alice/usage"
+method: GET
+headers:
+  X-API-Key: "{{apiKey}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200', function () { pm.response.to.have.status(200); });
+      const j = pm.response.json();
+      pm.test('35 used, 965 left', function () { pm.expect(j.user.consumed.month).to.eql(35); pm.expect(j.user.remaining.monthlyAllowance).to.eql(965); });
+    language: text/javascript
+order: 15000

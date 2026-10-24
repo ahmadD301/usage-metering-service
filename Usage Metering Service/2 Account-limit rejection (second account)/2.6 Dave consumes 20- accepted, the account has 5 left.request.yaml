@@ -1,0 +1,19 @@
+$kind: http-request
+name: "2.6 Dave consumes 20: accepted, the account has 5 left"
+url: "{{baseUrl}}/consume"
+method: POST
+headers:
+  X-API-Key: "{{apiKey2}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"userId":"dave","requestId":"pm-{{runId}}-4","units":20}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200', function () { pm.response.to.have.status(200); });
+      const j = pm.response.json();
+      pm.test('accepted', function () { pm.expect(j.accepted).to.eql(true); });
+      pm.test('the shared account has 5 left', function () { pm.expect(j.remaining.account.monthlyAllowance).to.eql(5); });
+    language: text/javascript
+order: 6000

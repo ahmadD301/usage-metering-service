@@ -1,0 +1,14 @@
+$kind: http-request
+name: "1.11 Effective plans: account plan and user plan together"
+url: "{{baseUrl}}/users/alice/effective-plans"
+method: GET
+headers:
+  X-API-Key: "{{apiKey}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200', function () { pm.response.to.have.status(200); });
+      const j = pm.response.json();
+      pm.test('account on Starter, user on Premium', function () { pm.expect(j.account.plan.name).to.eql('Starter'); pm.expect(j.user.plan.name).to.eql('Premium'); });
+    language: text/javascript
+order: 11000

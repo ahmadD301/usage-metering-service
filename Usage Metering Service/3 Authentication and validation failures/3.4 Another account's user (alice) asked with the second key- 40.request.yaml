@@ -1,0 +1,13 @@
+$kind: http-request
+name: "3.4 Another account's user (alice) asked with the second key: 404, same as a missing user"
+url: "{{baseUrl}}/users/alice/usage"
+method: GET
+headers:
+  X-API-Key: "{{apiKey2}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404', function () { pm.response.to.have.status(404); });
+      pm.test('user_not_found', function () { pm.expect(pm.response.json().error.code).to.eql('user_not_found'); });
+    language: text/javascript
+order: 4000

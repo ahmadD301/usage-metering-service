@@ -23,8 +23,17 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ["pg", "fastify", "zod", "node:*", "../db/*", "../http/*", "../consume/*"],
-              message: "src/domain must stay pure: no I/O or framework imports.",
+              group: [
+                "pg",
+                "fastify",
+                "zod",
+                "node:*",
+                "../db/*",
+                "../http/*",
+                "../consume/*",
+              ],
+              message:
+                "src/domain must stay pure: no I/O or framework imports.",
             },
           ],
         },
@@ -36,7 +45,11 @@ export default tseslint.config(
           property: "now",
           message: "Pass time in as a value; the domain has no clock.",
         },
-        { object: "Math", property: "random", message: "The domain must be deterministic." },
+        {
+          object: "Math",
+          property: "random",
+          message: "The domain must be deterministic.",
+        },
       ],
       "no-restricted-syntax": [
         "error",
@@ -44,7 +57,10 @@ export default tseslint.config(
           selector: "NewExpression[callee.name='Date'][arguments.length=0]",
           message: "Pass time in as a value; the domain has no clock.",
         },
-        { selector: "ClassDeclaration", message: "Prefer plain data and functions in the domain." },
+        {
+          selector: "ClassDeclaration",
+          message: "Prefer plain data and functions in the domain.",
+        },
       ],
     },
   },

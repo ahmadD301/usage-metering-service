@@ -1,0 +1,27 @@
+{
+  "scenario": "hot-account",
+  "resultName": "check-hot-account",
+  "config": {
+    "VUS": "10",
+    "DURATION": "10s"
+  },
+  "consume": {
+    "requests": 2456,
+    "perSecond": 245.6,
+    "latencyMs": {
+      "avg": 40.6,
+      "p50": 39.8,
+      "p90": 44.7,
+      "p95": 46.8,
+      "p99": 56.9,
+      "max": 76.1
+    }
+  },
+  "latencyMsByWorkload": {},
+  "droppedIterations": 0,
+  "httpFailedRate": 0,
+  "checksFailed": 0,
+  "unexpectedRejections": 0,
+  "acceptedUnits": 2456,
+  "duplicateViolations": null
+}

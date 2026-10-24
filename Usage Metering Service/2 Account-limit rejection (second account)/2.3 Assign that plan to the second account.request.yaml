@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{baseUrl}}/account/plan"
+method: PUT
+headers:
+  X-API-Key: "{{apiKey2}}"
+  Content-Type: application/json
+body:
+  type: json
+  content: '{"planId":"{{planId2}}"}'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200', function () { pm.response.to.have.status(200); });
+      pm.test('the account is on Tiny account', function () { pm.expect(pm.response.json().account.plan.name).to.eql('Tiny account'); });
+    language: text/javascript
+order: 3000

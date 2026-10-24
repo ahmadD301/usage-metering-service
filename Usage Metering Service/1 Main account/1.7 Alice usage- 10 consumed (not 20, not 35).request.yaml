@@ -1,0 +1,15 @@
+$kind: http-request
+name: "1.7 Alice usage: 10 consumed (not 20, not 35)"
+url: "{{baseUrl}}/users/alice/usage"
+method: GET
+headers:
+  X-API-Key: "{{apiKey}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200', function () { pm.response.to.have.status(200); });
+      const j = pm.response.json();
+      pm.test('10 consumed this month', function () { pm.expect(j.user.consumed.month).to.eql(10); });
+      pm.test('990 left', function () { pm.expect(j.user.remaining.monthlyAllowance).to.eql(990); });
+    language: text/javascript
+order: 7000

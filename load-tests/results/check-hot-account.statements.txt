@@ -1,0 +1,14 @@
+ calls | total_ms | mean_ms |                                           query                                            
+-------+----------+---------+--------------------------------------------------------------------------------------------
+  2458 |     6109 |   2.485 | SELECT $3 FROM account_usage WHERE account_id = $1 AND period_kind = $4 AND period_start =
+  2456 |     1057 |   0.430 | SELECT (SELECT json_build_object($6, rq.fingerprint, $7, rq.decision) FROM requests rq WHE
+  2456 |      775 |   0.316 | SELECT (SELECT json_build_object($4, rq.fingerprint, $5, rq.decision) FROM requests rq WHE
+  2456 |      613 |   0.249 | WITH req AS ( INSERT INTO requests (account_id, user_id, request_id, units, fingerprint, o
+  2509 |       93 |   0.037 | SELECT a.id, a.name, a.plan_id, a.created_at FROM api_keys k JOIN accounts a ON a.id = k.a
+  2456 |       34 |   0.014 | SELECT $3 FROM ONLY "public"."users" x WHERE "id" OPERATOR(pg_catalog.=) $1 AND "account_i
+    50 |       14 |   0.275 | INSERT INTO users (account_id, external_id, plan_id) VALUES ($1, $2, $3) RETURNING externa
+     2 |       12 |   6.098 | INSERT INTO account_usage (account_id, period_kind, period_start, units_used) VALUES ($1, 
+    54 |        3 |   0.054 | SELECT p.id, p.name, p.scope, p.owner_account_id, COALESCE( json_agg(json_build_object($2,
+     1 |        3 |   2.520 | INSERT INTO api_keys (account_id, key_prefix, key_hash) VALUES ($1, $2, $3)
+(10 rows)
+
